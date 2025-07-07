@@ -1,51 +1,46 @@
 # app/telegram_bot/handlers/lyrics_handler.py
 
-import re
-import requests
-from aiogram import Dispatcher
-from aiogram.types import Message
-from app.telegram_bot.handlers.songs_handler import save_user_link
-from app.telegram_bot.handlers.texts_handler import save_lyrics
+from aiogram import types, Dispatcher
+from app.utils.lyrics_generator import generate_lyrics
+from app.telegram_bot.send_file import send_lyrics_file
 
+# Պահելու համար user-ի վերջին հղումը
+temp_links = {}
 
-# 🔁 Պահպանում ենք օգտատերերի վիճակը
-user_state = {}
+async def ask_for_link(message: types.Message):
+    await message.reply("📥 Ուղարկիր YouTube հղումը և կբերեմ բառերը ✨")
 
-# ✅ Regex checker
-def is_youtube_url(text: str) -> bool:
-    pattern = r"(https?://)?(www\.)?(youtube\.com|youtu\.be)/\S+"
-    return re.match(pattern, text) is not None
+async def lyrics_from_text(message: types.Message):
+    url = message.text.strip()
+    if not url.startswith("http"):
+        await message.reply("❌ Խնդրում եմ ուղարկեք վավեր YouTube հղում։")
+        return
 
-# 📡 Ուղարկում ենք backend API-ին
-def send_to_backend(url: str) -> str:
+    await message.reply("🔍 Վերլուծում եմ YouTube հղումը…")
+
     try:
-        response = requests.post("http://localhost:8000/api/youtube", json={"url": url})
-        response.raise_for_status()
-        data = response.json()
-        return data.get("lyrics", "❌ Couldn't find lyrics.")
+        from yt_dlp import YoutubeDL
+        ydl_opts = {
+            'quiet': True,
+            'skip_download': True,
+            'no_warnings': True
+        }
+        with YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            title = info.get("title", "Unknown")
+            artist = info.get("uploader", "Unknown")
+
+        # Ստանում ենք բառերը բոլոր ճանապարհներով (GPT→Genius→Whisper)
+        lyrics = generate_lyrics(title, artist, youtube_url=url)
+
+        await message.reply("📄 Ահա քո երգի բառերը PDF ֆայլով ⬇️")
+        filename = f"{title}_{artist}".replace(" ", "_")
+        await send_lyrics_file(message.bot, message.chat.id, filename)
+
     except Exception as e:
-        return f"🚫 Error from backend: {e}"
+        await message.reply(f"❌ Սխալ տեղի ունեցավ։\n{str(e)}")
+
 
 def register(dp: Dispatcher):
-    # 🎼 Երբ սեղմում են մենյուից
-    @dp.message_handler(lambda msg: msg.text == "🎼 Ստացիր երգի բառերը")
-    async def ask_for_link(message: Message):
-        user_state[message.from_user.id] = "awaiting_youtube_link"
-        await message.answer("📥 Խնդրում եմ ուղարկիր YouTube հղումը՝ երգի բառերը ստանալու համար։")
-
-    # 📩 Երբ ստանում ենք հղումը
-    @dp.message_handler()
-    async def handle_text(message: Message):
-        user_id = message.from_user.id
-        text = message.text.strip()
-
-        if user_state.get(user_id) == "awaiting_youtube_link":
-            if is_youtube_url(text):
-                save_user_link(user_id, text)  # ✅ Հիշում ենք հղումը
-                await message.answer("🔎 Վերլուծում եմ YouTube հղումը...")
-                lyrics = send_to_backend(text)
-                save_lyrics(user_id, text, lyrics)  # ✅ Պահպանում ենք երգի բառերը
-                await message.answer(f"🎶 Բառեր:\n\n{lyrics}")
-            else:
-                await message.answer("❌ Խնդրում եմ ուղարկիր վավեր YouTube հղում։")
-            user_state[user_id] = None
+    dp.register_message_handler(ask_for_link, lambda m: m.text == "🎼 Ստացիր երգի բառերը")
+    dp.register_message_handler(lyrics_from_text, regexp=r"https?://(www\.)?(youtube|youtu)\.")

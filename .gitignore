@@ -7,3 +7,7 @@ __pycache__/
 
 # Ignore other common unwanted files
 *.log
+
+chromedriver-linux64.zip
+
+chromedriver-linux64/

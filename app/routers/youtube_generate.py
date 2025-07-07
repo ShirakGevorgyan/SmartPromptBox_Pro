@@ -21,7 +21,8 @@ def generate_from_youtube(data: YouTubeURL):
             title = info.get("title", "Unknown Title")
             channel = info.get("uploader", "Unknown Channel")
 
-            lyrics = generate_lyrics(title, channel)
+            # ✅ Նոր տարբերակ՝ փոխանցում ենք նաև YouTube հղումը
+            lyrics = generate_lyrics(title, channel, youtube_url=data.url)
 
             return {
                 "title": title,

@@ -1,102 +1,106 @@
-# app/telegram_bot/handlers/download_handler.py
-
-import os
-import yt_dlp
 from aiogram import Dispatcher
-from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, InputFile
-from app.telegram_bot.handlers.songs_handler import user_links
+from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InputFile
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import State, StatesGroup
 
-download_state = {}
+import asyncio
+import os
+from app.utils.youtube_downloader import download_audio, download_video
 
-DOWNLOAD_DIR = "downloads"
-os.makedirs(DOWNLOAD_DIR, exist_ok=True)
-
-def download_audio(url: str, filename: str) -> str:
-    output_path = os.path.join(DOWNLOAD_DIR, filename)
-    ydl_opts = {
-        "format": "bestaudio/best",
-        "outtmpl": output_path,
-        "quiet": True,
-        "postprocessors": [{
-            "key": "FFmpegExtractAudio",
-            "preferredcodec": "mp3",
-            "preferredquality": "192",
-        }],
-    }
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
-    return output_path
-
-def download_video(url: str, filename: str) -> str:
-    output_path = os.path.join(DOWNLOAD_DIR, filename)
-    ydl_opts = {
-        "format": "mp4",
-        "outtmpl": output_path,
-        "quiet": True
-    }
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
-    return output_path
+class DownloadStates(StatesGroup):
+    waiting_for_url = State()
+    choosing_format = State()
+    choosing_quality = State()
 
 def register(dp: Dispatcher):
-    @dp.message_handler(lambda msg: msg.text == "⬇️ Ներբեռնել երգը")
-    async def choose_song(message: Message):
-        user_id = message.from_user.id
-        links = user_links.get(user_id, [])
+    dp.register_message_handler(start_download, lambda m: m.text == "⬇️ Ներբեռնել երգը", state="*")
+    dp.register_message_handler(receive_url, state=DownloadStates.waiting_for_url)
+    dp.register_message_handler(choose_format, state=DownloadStates.choosing_format)
+    dp.register_message_handler(choose_quality, state=DownloadStates.choosing_quality)
+    dp.register_message_handler(restart_download, lambda m: m.text == "🔁 Նոր հղում ուղարկել", state="*")
 
-        if not links:
-            await message.answer("📭 Դու դեռ ոչ մի հղում չես ուղարկել։")
-        else:
-            buttons = [[KeyboardButton(link)] for link in links]
-            keyboard = ReplyKeyboardMarkup(keyboard=buttons, resize_keyboard=True)
-            download_state[user_id] = {"step": "select_link"}
-            await message.answer("⬇️ Ընտրիր հղումը՝ ներբեռնելու համար։", reply_markup=keyboard)
+async def start_download(message: Message, state: FSMContext):
+    await message.answer("📎 Ուղարկիր YouTube հղումը:")
+    await DownloadStates.waiting_for_url.set()
 
-    @dp.message_handler()
-    async def handle_download_steps(message: Message):
-        user_id = message.from_user.id
-        state = download_state.get(user_id)
+async def receive_url(message: Message, state: FSMContext):
+    await state.update_data(url=message.text)
 
-        if not state:
+    format_keyboard = ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton("🎵 Աուդիո"), KeyboardButton("🎥 Վիդեո")]],
+        resize_keyboard=True
+    )
+    await message.answer("📥 Որ տարբերակով ես ուզում ներբեռնել?", reply_markup=format_keyboard)
+    await DownloadStates.choosing_format.set()
+
+async def choose_format(message: Message, state: FSMContext):
+    user_choice = message.text
+    await state.update_data(format=user_choice)
+
+    if user_choice == "🎥 Վիդեո":
+        quality_keyboard = ReplyKeyboardMarkup(
+            keyboard=[
+                [KeyboardButton("🔺 720p"), KeyboardButton("🔹 480p")],
+                [KeyboardButton("🔸 360p"), KeyboardButton("🔻 240p")]
+            ],
+            resize_keyboard=True
+        )
+        await message.answer("📺 Ընտրիր որակը:", reply_markup=quality_keyboard)
+        await DownloadStates.choosing_quality.set()
+    else:
+        data = await state.get_data()
+        url = data["url"]
+        await message.answer("⏳ Ներբեռնում եմ աուդիոն․․․", reply_markup=ReplyKeyboardRemove())
+        file_path = await asyncio.to_thread(download_audio, url)
+
+        if not os.path.exists(file_path):
+            await message.answer("❌ Աուդիոն ներբեռնել չհաջողվեց։")
+            await state.finish()
             return
 
-        # Քայլ 1․ ընտրել հղումը
-        if state["step"] == "select_link":
-            link = message.text.strip()
-            if link not in user_links.get(user_id, []):
-                await message.answer("❌ Սա քո ուղարկած հղումներից չէ։")
-                return
-            download_state[user_id] = {
-                "step": "select_type",
-                "link": link
-            }
-            buttons = [[KeyboardButton("🎧 Audio"), KeyboardButton("🎥 Video")]]
-            keyboard = ReplyKeyboardMarkup(keyboard=buttons, resize_keyboard=True)
-            await message.answer("🔽 Որ ձևաչափով ես ուզում ներբեռնել?", reply_markup=keyboard)
-            return
+        clean_name = os.path.splitext(os.path.basename(file_path))[0]
+        document = InputFile(file_path, filename=f"{clean_name}.mp3")
+        await message.answer_document(document, caption=clean_name)
+        os.remove(file_path)
 
-        # Քայլ 2․ ընտրել տեսակը
-        if state["step"] == "select_type":
-            choice = message.text.strip().lower()
-            link = state["link"]
+        await message.answer(
+            "✅ Ներբեռնումը ավարտված է։\nՈւղարկիր նոր հղում կամ սեղմիր «🔁 Նոր հղում ուղարկել»:",
+            reply_markup=ReplyKeyboardMarkup(
+                keyboard=[[KeyboardButton("🔁 Նոր հղում ուղարկել")]],
+                resize_keyboard=True,
+                one_time_keyboard=True,
+            )
+        )
+        await state.finish()
 
-            await message.answer("⏳ Ներբեռնում եմ, սպասիր...")
+async def choose_quality(message: Message, state: FSMContext):
+    data = await state.get_data()
+    url = data["url"]
+    quality = message.text.replace("🔺", "").replace("🔹", "").replace("🔸", "").replace("🔻", "").strip()
 
-            try:
-                filename = f"{user_id}_{int(message.date.timestamp())}"
+    await message.answer(f"⏳ Ներբեռնում եմ վիդեոն՝ {quality} որակով․․․", reply_markup=ReplyKeyboardRemove())
+    file_path = await asyncio.to_thread(download_video, url, quality)
 
-                if "audio" in choice:
-                    path = download_audio(link, filename + ".mp3")
-                    await message.answer_audio(InputFile(path), caption="🎶 Ահա քո երգը (audio)")
-                elif "video" in choice:
-                    path = download_video(link, filename + ".mp4")
-                    await message.answer_video(InputFile(path), caption="🎬 Ահա քո երգը (video)")
-                else:
-                    await message.answer("❌ Ընտրությունը չհասկացա։")
+    if not os.path.exists(file_path):
+        await message.answer("❌ Վիդեոն ներբեռնել չհաջողվեց։")
+        await state.finish()
+        return
 
-                os.remove(path)
+    clean_name = os.path.splitext(os.path.basename(file_path))[0]
+    document = InputFile(file_path, filename=f"{clean_name}.mp4")
+    await message.answer_document(document, caption=clean_name)
+    os.remove(file_path)
 
-            except Exception as e:
-                await message.answer(f"❌ Չհաջողվեց ներբեռնել. {e}")
+    await message.answer(
+        "✅ Ներբեռնումը ավարտված է։\nՈւզում ես նոր հղում ուղարկել? Սեղմիր «🔁 Նոր հղում ուղարկել»:",
+        reply_markup=ReplyKeyboardMarkup(
+            keyboard=[[KeyboardButton("🔁 Նոր հղում ուղարկել")]],
+            resize_keyboard=True,
+            one_time_keyboard=True,
+        )
+    )
+    await state.finish()
 
-            download_state[user_id] = None
+async def restart_download(message: Message, state: FSMContext):
+    await message.answer("📎 Ուղարկիր YouTube հղումը:")
+    await DownloadStates.waiting_for_url.set()
