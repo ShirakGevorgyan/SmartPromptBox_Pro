@@ -1,9 +1,11 @@
 import os
-from aiogram import Dispatcher
+from aiogram import Router
 from aiogram.types import Message, InputFile
 
 # 📂 PDF-երի ժամանակավոր պահոց
 PDF_DIR = "app/temp"
+
+router = Router()
 
 # 🔍 Վերցնում ենք վերջին PDF ֆայլը ըստ ստեղծման ժամանակի
 def get_last_pdf_file():
@@ -15,12 +17,11 @@ def get_last_pdf_file():
     pdfs.sort(key=lambda f: os.path.getmtime(os.path.join(PDF_DIR, f)), reverse=True)
     return os.path.join(PDF_DIR, pdfs[0])
 
-# ✅ Handler գրանցում
-def register(dp: Dispatcher):
-    @dp.message_handler(commands=["send_last_pdf"])
-    async def send_last_pdf(message: Message):
-        pdf_path = get_last_pdf_file()
-        if pdf_path:
-            await message.answer_document(InputFile(pdf_path), caption="📄 Ահա վերջին PDF ֆայլը։")
-        else:
-            await message.answer("❌ Չկան ստեղծված PDF ֆայլեր։")
+# ✅ PDF ուղարկող ռաութեր
+@router.message(lambda message: message.text == "/send_last_pdf")
+async def send_last_pdf(message: Message):
+    pdf_path = get_last_pdf_file()
+    if pdf_path:
+        await message.answer_document(InputFile(pdf_path), caption="📄 Ահա վերջին PDF ֆայլը։")
+    else:
+        await message.answer("❌ Չկան ստեղծված PDF ֆայլեր։")

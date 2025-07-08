@@ -9,7 +9,7 @@ os.makedirs(TEMP_DIR, exist_ok=True)
 def sanitize_filename(name: str) -> str:
     return "".join(c for c in name if c.isalnum() or c in " .-_").strip()
 
-def download_audio(url: str) -> str:
+def download_audio(url: str, filename: str = None) -> str:
     try:
         temp_filename = os.path.join(TEMP_DIR, f"{uuid.uuid4()}.%(ext)s")
         ydl_opts = {
@@ -31,11 +31,14 @@ def download_audio(url: str) -> str:
         if not os.path.exists(mp3_file):
             raise FileNotFoundError(f"Audio file not found: {mp3_file}")
 
-        artist = info.get("uploader", "Unknown")
-        title = info.get("title", "Untitled")
-        clean_name = sanitize_filename(f"{artist} - {title}")
-        final_path = os.path.join(TEMP_DIR, clean_name + ".mp3")
+        if filename:
+            clean_name = sanitize_filename(filename)
+        else:
+            artist = info.get("uploader", "Unknown")
+            title = info.get("title", "Untitled")
+            clean_name = sanitize_filename(f"{artist} - {title}")
 
+        final_path = os.path.join(TEMP_DIR, clean_name + ".mp3")
         os.rename(mp3_file, final_path)
         logging.info(f"✅ Audio renamed to: {final_path}")
         return final_path
@@ -44,7 +47,7 @@ def download_audio(url: str) -> str:
         logging.exception("Audio download failed:")
         raise RuntimeError("❌ Աուդիոն ներբեռնել չհաջողվեց։")
 
-def download_video(url: str, quality: str) -> str:
+def download_video(url: str, quality: str, filename: str = None) -> str:
     try:
         temp_filename = os.path.join(TEMP_DIR, f"{uuid.uuid4()}.%(ext)s")
         ydl_opts = {
@@ -63,11 +66,14 @@ def download_video(url: str, quality: str) -> str:
         if not os.path.exists(video_file):
             raise FileNotFoundError(f"Video file not found: {video_file}")
 
-        artist = info.get("uploader", "Unknown")
-        title = info.get("title", "Untitled")
-        clean_name = sanitize_filename(f"{artist} - {title}")
-        final_path = os.path.join(TEMP_DIR, clean_name + ".mp4")
+        if filename:
+            clean_name = sanitize_filename(filename)
+        else:
+            artist = info.get("uploader", "Unknown")
+            title = info.get("title", "Untitled")
+            clean_name = sanitize_filename(f"{artist} - {title}")
 
+        final_path = os.path.join(TEMP_DIR, clean_name + ".mp4")
         os.rename(video_file, final_path)
         logging.info(f"✅ Video renamed to: {final_path}")
         return final_path
