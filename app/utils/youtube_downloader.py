@@ -43,7 +43,7 @@ def download_audio(url: str, filename: str = None) -> str:
         logging.info(f"✅ Audio renamed to: {final_path}")
         return final_path
 
-    except Exception as e:
+    except Exception:
         logging.exception("Audio download failed:")
         raise RuntimeError("❌ Աուդիոն ներբեռնել չհաջողվեց։")
 
@@ -78,6 +78,6 @@ def download_video(url: str, quality: str, filename: str = None) -> str:
         logging.info(f"✅ Video renamed to: {final_path}")
         return final_path
 
-    except Exception as e:
+    except Exception:
         logging.exception("Video download failed:")
         raise RuntimeError("❌ Վիդեոն ներբեռնել չհաջողվեց։")

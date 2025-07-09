@@ -1,13 +1,9 @@
 # app/utils/lyrics_generator.py
 
-import os
 from dotenv import load_dotenv
 from app.utils.file_writer import save_as_txt_and_pdf
 from app.utils.audio_transcriber import download_audio_from_youtube, transcribe_audio
 from app.scraper.musixmatch_scraper import fetch_lyrics_sync
-
-
-
 
 load_dotenv()
 
