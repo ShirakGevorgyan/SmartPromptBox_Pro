@@ -8,7 +8,9 @@ from aiogram.filters import CommandStart
 from dotenv import load_dotenv
 
 # ✅ Ռաութերներ
-from app.telegram_bot.routers import mood_router
+from app.telegram_bot.handlers import mood_handler
+
+
 
 from app.telegram_bot.handlers import (
     # lyrics_handler,
@@ -47,7 +49,7 @@ async def main():
 
     # ✅ Ռաութերների գրանցում (song_menu_handler-ը ամենավերևում)
     dp.include_router(song_menu_handler.router)
-    dp.include_router(mood_router.router)
+    dp.include_router(mood_handler.router)
     # dp.include_router(lyrics_handler.router)
     dp.include_router(songs_handler.router)
     dp.include_router(download_handler.router)

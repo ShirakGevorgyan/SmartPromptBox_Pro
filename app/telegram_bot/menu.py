@@ -19,6 +19,9 @@ mood_menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="😢 Տխուր եմ"), KeyboardButton(text="🥰 Սիրահարված եմ")],
         [KeyboardButton(text="😤 Զայրացած եմ"), KeyboardButton(text="😐 Ուղղակի լավ եմ")],
+        [KeyboardButton(text="🤩 Ուրախ եմ"), KeyboardButton(text="😴 Հոգնած եմ")],
+        [KeyboardButton(text="🤯 Սթրեսային վիճակում եմ"), KeyboardButton(text="😎 Մոտիվացված եմ")],
+        [KeyboardButton(text="😔 Մենակ եմ"), KeyboardButton(text="💭 Խորհում եմ")],
         [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
     ],
     resize_keyboard=True
@@ -46,26 +49,23 @@ movie_menu = ReplyKeyboardMarkup(
     resize_keyboard=True
 )
 
-# 🎵 Երգեր ենթամենյու
-# song_menu = ReplyKeyboardMarkup(
-#     keyboard=[
-#         [KeyboardButton(text="🔤 Ստացիր բառերը"), KeyboardButton(text="⬇️ Ներբեռնել երգը")],
-#         [KeyboardButton(text="❤️ Տրամադրությամբ երգեր"), KeyboardButton(text="🎧 Սիրած երգեր")],
-#         [KeyboardButton(text="🔀 Պատահական երգ"), KeyboardButton(text="🎵 Ուղարկված երգեր")],  # Ավելացված կոճակ
-#         [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
-#     ],
-#     resize_keyboard=True
 
 song_menu = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="🔤 Ստացիր բառերը"), KeyboardButton(text="⬇️ Ներբեռնել երգը")],
-        [KeyboardButton(text="❤️ Տրամադրությամբ երգեր"), KeyboardButton(text="🎧 Սիրած երգեր")],
-        [KeyboardButton(text="🔀 Պատահական երգ"), KeyboardButton(text="🎵 Ուղարկված երգեր")],
+        [KeyboardButton(text="⬇️ Ներբեռնել երգ"), KeyboardButton(text="❤️ Տրամադրությամբ երգեր")],
+        [KeyboardButton(text="🔀 Պատահական երգ")],
         [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
     ],
     resize_keyboard=True
 )
 
+song_action_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="🎵 Նոր երգ")],
+        [KeyboardButton(text="🔙 Տրամադրության մենյու"), KeyboardButton(text="🏠 Գլխավոր մենյու")]
+    ],
+    resize_keyboard=True
+)
 
 # 📜 Հիշողություն ենթամենյու
 memory_menu = ReplyKeyboardMarkup(

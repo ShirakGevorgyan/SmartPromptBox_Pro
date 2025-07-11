@@ -72,7 +72,8 @@ async def choose_format(message: Message, state: FSMContext):
         await message.answer(
             "✅ Ներբեռնումը ավարտված է։\nՈւղարկիր նոր հղում կամ սեղմիր «🔁 Նոր հղում ուղարկել»:",
             reply_markup=ReplyKeyboardMarkup(
-                keyboard=[[KeyboardButton(text="🔁 Նոր հղում ուղարկել")]],
+                keyboard=[[KeyboardButton(text="🔁 Նոր հղում ուղարկել")],
+                            [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]],
                 resize_keyboard=True,
                 one_time_keyboard=True
             )
@@ -109,7 +110,8 @@ async def choose_quality(message: Message, state: FSMContext):
     await message.answer(
         "✅ Ներբեռնումը ավարտված է։\nՈւզում ես նոր հղում ուղարկել? Սեղմիր «🔁 Նոր հղում ուղարկել»:",
         reply_markup=ReplyKeyboardMarkup(
-            keyboard=[[KeyboardButton(text="🔁 Նոր հղում ուղարկել")]],
+            keyboard=[[KeyboardButton(text="🔁 Նոր հղում ուղարկել")],
+                        [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]],
             resize_keyboard=True,
             one_time_keyboard=True
         )
