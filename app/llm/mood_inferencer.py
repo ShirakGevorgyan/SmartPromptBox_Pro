@@ -14,7 +14,6 @@ def clean_gpt_code_block(text: str) -> str:
     return re.sub(r"```(?:python)?\s*([\s\S]*?)\s*```", r"\1", text).strip()
 
 def parse_fallback_list(response: str) -> List[Dict[str, str]]:
-    # Եթե GPT-ն չտվեց ճիշտ ձևաչափ, fallback աշխատի պարզ կառուցվածքով
     lines = response.splitlines()
     fallback = []
     for line in lines:
@@ -56,11 +55,11 @@ def generate_songs_for_mood(mood: str) -> List[Dict[str, str]]:
         print("❌ GPT structured վերադարձը ձախողվեց:", e)
         return parse_fallback_list(response)
 
-def generate_songs_random(mood: str) -> List[Dict[str, str]]:
+def generate_songs_random() -> List[Dict[str, str]]:
     system_prompt = (
         "Դու երաժշտական օգնական ես։ "
         f"Օգտատերը նշել է որ ուզում է պատահական (Random) երգ։ "
-        "Թող դա լինի այնպիսի երգ որ Youtube-ում ունենա 300 միլիոնից քիչ դիտում։ "
+        "Թող դա լինի այնպիսի երգ որ Youtube-ում ունենա 300 միլիոնից քիչ, շատ քիչ դիտում։ "
         "Երգի համար վերադարձրու հետևյալ դաշտերը՝ title, artist, description, youtube։ "
         "Վերադարձը կառուցիր որպես Python list[dict] այս ձևաչափով՝\n\n"
         '[\n'
@@ -75,7 +74,8 @@ def generate_songs_random(mood: str) -> List[Dict[str, str]]:
         "Մի՛ գրիր բացատրություններ, միայն ցուցակը՝ կոդի բլոկի մեջ։"
     )
 
-    response = ask_gpt(system_prompt, mood)
+    response = ask_gpt(system_prompt, "")
+
     cleaned = clean_gpt_code_block(response)
 
     try:
@@ -84,7 +84,6 @@ def generate_songs_random(mood: str) -> List[Dict[str, str]]:
         print("❌ GPT structured վերադարձը ձախողվեց:", e)
         return parse_fallback_list(response)
 
-# ✅ 5 Ֆիլմ տրամադրությանը համապատասխան
 def generate_movies_for_mood(mood: str) -> list[dict]:
     system_prompt = (
         "Դու կինոյի փորձագետ ես։ "
@@ -100,17 +99,10 @@ def generate_movies_for_mood(mood: str) -> list[dict]:
     )
 
     response = ask_gpt(system_prompt, mood)
-    # print("📥 GPT-ից եկած պատասխան՝")
-    # print(response)
-
     cleaned = clean_gpt_code_block(response)
-    # print("🧹 Մաքրած տեքստ՝")
-    # print(cleaned)
-
 
     try:
-        # import json
-        fixed_json = cleaned.replace("'", '"')  # փոխում ենք '' → "" JSON-ի համար
+        fixed_json = cleaned.replace("'", '"')
         return json.loads(fixed_json)
     except Exception as e:
         print("❌ GPT վերադարձը չի կարող վերածվել structured ֆիլմերի ցուցակի:", e)
@@ -119,7 +111,6 @@ def generate_movies_for_mood(mood: str) -> list[dict]:
 
 
 
-# ✅ 5 մեջբերում տրամադրությանը համապատասխան
 def generate_quotes_for_mood(mood: str) -> str:
     system_prompt = (
         "Օգտատերը իրեն զգում է՝ '{}'. "
@@ -129,7 +120,6 @@ def generate_quotes_for_mood(mood: str) -> str:
     return ask_gpt(system_prompt, mood)
 
 
-# ✅ 2 նկարագրություն՝ text-to-image-ի համար
 def generate_image_prompts_for_mood(mood: str) -> str:
     system_prompt = (
         "Դու արվեստի օգնական ես, ով ստեղծում է նկարների նկարագրություններ (prompt): "
@@ -140,7 +130,6 @@ def generate_image_prompts_for_mood(mood: str) -> str:
     return ask_gpt(system_prompt, mood)
 
 
-# 🧠 Ընդհանուր GPT հարցման ֆունկցիա
 def ask_gpt(system_prompt: str, mood: str) -> str:
     try:
         response = client.chat.completions.create(
@@ -175,5 +164,5 @@ def describe_songs_llm(song_titles: List[str]) -> List[str]:
     for i, title in enumerate(song_titles, 1):
         prompt += f"{i}. {title}\n"
 
-    response = ask_gpt(prompt, "")  # mood չենք տալիս այստեղ
+    response = ask_gpt(prompt, "") 
     return clean_gpt_descriptions(response)

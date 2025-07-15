@@ -50,7 +50,6 @@ async def send_movies_as_buttons(movies: list[dict], message):
         await message.answer(text, parse_mode="HTML", reply_markup=keyboard)
 
 # ✅ Երգեր ուղարկող ֆունկցիա
-# ✅ Երգեր ուղարկող ֆունկցիա
 async def send_song_buttons(songs: list[dict], message: Message, state: FSMContext):
     await state.update_data(songs_for_download=songs)  # store full list in FSM
 
@@ -154,8 +153,6 @@ async def show_mood_menu(message: Message, state: FSMContext):
         reply_markup=mood_menu
     ) 
     
-
-
 # ✅ Վերադառնալ տրամադրության ընտրությանը
 @router.message(F.text == "🔙 Վերադառնալ տրամադրության ընտրությանը")
 async def back_to_mood(message: Message):

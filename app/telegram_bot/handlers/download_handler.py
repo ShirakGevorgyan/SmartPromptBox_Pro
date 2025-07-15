@@ -14,7 +14,7 @@ class DownloadStates(StatesGroup):
     choosing_format = State()
     choosing_quality = State()
 
-@router.message(F.text == "⬇️ Ներբեռնել երգը")
+@router.message(F.text == "⬇️ Ներբեռնել երգ")
 async def start_download(message: Message, state: FSMContext):
     await message.answer("📎 Ուղարկիր YouTube հղումը:")
     await state.set_state(DownloadStates.waiting_for_url)
@@ -70,7 +70,7 @@ async def choose_format(message: Message, state: FSMContext):
         os.remove(file_path)
 
         await message.answer(
-            "✅ Ներբեռնումը ավարտված է։\nՈւղարկիր նոր հղում կամ սեղմիր «🔁 Նոր հղում ուղարկել»:",
+            "✅ Ներբեռնումը ավարտված է։\nՍեղմիր «🔁 Նոր հղում ուղարկել» և ուղարկիր նոր հղում:",
             reply_markup=ReplyKeyboardMarkup(
                 keyboard=[[KeyboardButton(text="🔁 Նոր հղում ուղարկել")],
                             [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]],

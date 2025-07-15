@@ -5,10 +5,10 @@ main_menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="🧠 Mood Assistant")],
         [KeyboardButton(text="🎬 Ֆիլմեր և Սերիալներ"), KeyboardButton(text="🎵 Երգեր")],
-        [KeyboardButton(text="📜 Հիշողություն"), KeyboardButton(text="🎼 Իմ Playlist-ը")],
-        [KeyboardButton(text="🎙 Ձայնային հարցում"), KeyboardButton(text="🌍 GPT խոսակցություն")],
+        # [KeyboardButton(text="📜 Հիշողություն"), KeyboardButton(text="🎼 Իմ Playlist-ը")],
+        [KeyboardButton(text="🎙 Ձայնային հարցում"), KeyboardButton(text="⭐️ Խոսիր ինձ հետ")],
         [KeyboardButton(text="🎨 Նկար գեներացիա")],
-        [KeyboardButton(text="📖 Պատմության շարունակություն"), KeyboardButton(text="✍️ Բանաստեղծություն / Քառյակ")],
+        # [KeyboardButton(text="📖 Պատմության շարունակություն"), KeyboardButton(text="✍️ Բանաստեղծություն / Քառյակ")],
         [KeyboardButton(text="📅 Օրվա առաջարկ")]
     ],
     resize_keyboard=True
@@ -59,6 +59,14 @@ song_menu = ReplyKeyboardMarkup(
     resize_keyboard=True
 )
 
+random_song_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="🔁 Նոր պատահական երգ")],
+        [KeyboardButton(text="🏠 Գլխավոր մենյու")]
+    ],
+    resize_keyboard=True
+)
+
 song_action_menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="🎵 Նոր երգ")],
@@ -104,6 +112,14 @@ poetry_menu = ReplyKeyboardMarkup(
         [KeyboardButton(text="💌 Սիրային քառյակ"), KeyboardButton(text="🔥 Rap տողեր")],
         [KeyboardButton(text="🎭 Փիլիսոփայական տողեր")],
         [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
+    ],
+    resize_keyboard=True
+)
+
+gpt_reply_markup = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")],
+        [KeyboardButton(text="🧹 Մաքրել զրույցը")]
     ],
     resize_keyboard=True
 )
