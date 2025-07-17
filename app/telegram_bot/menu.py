@@ -6,10 +6,8 @@ main_menu = ReplyKeyboardMarkup(
         [KeyboardButton(text="🧠 Mood Assistant")],
         [KeyboardButton(text="🎬 Ֆիլմեր և Սերիալներ"), KeyboardButton(text="🎵 Երգեր")],
         # [KeyboardButton(text="📜 Հիշողություն"), KeyboardButton(text="🎼 Իմ Playlist-ը")],
-        [KeyboardButton(text="🎙 Ձայնային հարցում"), KeyboardButton(text="⭐️ Խոսիր ինձ հետ")],
-        [KeyboardButton(text="🎨 Նկար գեներացիա")],
-        # [KeyboardButton(text="📖 Պատմության շարունակություն"), KeyboardButton(text="✍️ Բանաստեղծություն / Քառյակ")],
-        [KeyboardButton(text="📅 Օրվա առաջարկ")]
+        [KeyboardButton(text="⭐️ Խոսիր ինձ հետ"),KeyboardButton(text="🎨 Նկար գեներացիա")],
+        # [KeyboardButton(text="📅 Օրվա առաջարկ")]
     ],
     resize_keyboard=True
 )
@@ -162,7 +160,7 @@ film_and_series_menu = ReplyKeyboardMarkup(
 
 img_menu = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="Նոր նկար գեներացնել")],
+        # [KeyboardButton(text="🔁 Նոր նկար գեներացնել")],
         [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
     ]
 )
