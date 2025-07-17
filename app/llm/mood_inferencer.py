@@ -58,7 +58,7 @@ def generate_songs_for_mood(mood: str) -> List[Dict[str, str]]:
 def generate_songs_random() -> List[Dict[str, str]]:
     system_prompt = (
         "Դու երաժշտական օգնական ես։ "
-        f"Օգտատերը նշել է որ ուզում է պատահական (Random) երգ։ "
+        "Օգտատերը նշել է որ ուզում է պատահական (Random) երգ։ "
         "Թող դա լինի այնպիսի երգ որ Youtube-ում ունենա 300 միլիոնից քիչ, շատ քիչ դիտում։ "
         "Երգի համար վերադարձրու հետևյալ դաշտերը՝ title, artist, description, youtube։ "
         "Վերադարձը կառուցիր որպես Python list[dict] այս ձևաչափով՝\n\n"

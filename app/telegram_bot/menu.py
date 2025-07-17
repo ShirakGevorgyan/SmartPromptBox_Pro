@@ -123,3 +123,46 @@ gpt_reply_markup = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True
 )
+
+
+movie_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="🎞 Ֆիլմի նկարագրություն")],
+        [KeyboardButton(text="🎲 Պատահական ֆիլմ")],
+        # [KeyboardButton(text="😊 Ֆիլմ ըստ տրամադրության")],
+        [KeyboardButton(text="🔍 Ասա ֆիլմի անունը")],
+        [KeyboardButton(text="🔙 Վերադառնալ Ֆիլմեր և Սերիալներ")],
+        [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
+    ],
+    resize_keyboard=True
+)
+
+
+
+series_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="📘 Սերիալի նկարագրություն")],
+        [KeyboardButton(text="🎲 Պատահական սերիալ")],
+        # [KeyboardButton(text="😊 Սերիալ ըստ տրամադրության")],
+        [KeyboardButton(text="🔍 Ասա սերիալի անունը")],
+        [KeyboardButton(text="🔙 Վերադառնալ Ֆիլմեր և Սերիալներ")],
+        [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
+    ],
+    resize_keyboard=True
+)
+
+film_and_series_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="🎥 Ֆիլմեր")],
+        [KeyboardButton(text="📺 Սերիալներ")],
+        [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
+    ],
+    resize_keyboard=True
+)
+
+img_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="Նոր նկար գեներացնել")],
+        [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
+    ]
+)
