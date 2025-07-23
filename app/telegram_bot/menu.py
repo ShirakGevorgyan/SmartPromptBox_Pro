@@ -5,12 +5,12 @@ main_menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="🧠 Mood Assistant")],
         [KeyboardButton(text="🎬 Ֆիլմեր և Սերիալներ"), KeyboardButton(text="🎵 Երգեր")],
+        [KeyboardButton(text="🎨 Նկար գեներացիա"), KeyboardButton(text="⭐️ Խոսիր ինձ հետ")],
         # [KeyboardButton(text="📜 Հիշողություն"), KeyboardButton(text="🎼 Իմ Playlist-ը")],
-        [KeyboardButton(text="🎙 Ձայնային հարցում"), KeyboardButton(text="⭐️ Խոսիր ինձ հետ")],
-        [KeyboardButton(text="🎨 Նկար գեներացիա")],
+        # [KeyboardButton(text="🎙 Ձայնային հարցում")],
         # [KeyboardButton(text="📖 Պատմության շարունակություն"), KeyboardButton(text="✍️ Բանաստեղծություն / Քառյակ")],
-        [KeyboardButton(text="📅 Օրվա առաջարկ")]
-    ],
+        # [KeyboardButton(text="📅 Օրվա առաջարկ")]
+    ], 
     resize_keyboard=True
 )
 
@@ -86,35 +86,35 @@ memory_menu = ReplyKeyboardMarkup(
 )
 
 # 🎼 Playlist ենթամենյու
-playlist_menu = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="🎼 GPT Playlist առաջարկ"), KeyboardButton(text="🧠 Ըստ տրամադրության")],
-        [KeyboardButton(text="📝 Իմ կազմած Playlist-ները")],
-        [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
-    ],
-    resize_keyboard=True
-)
+# playlist_menu = ReplyKeyboardMarkup(
+#     keyboard=[
+#         [KeyboardButton(text="🎼 GPT Playlist առաջարկ"), KeyboardButton(text="🧠 Ըստ տրամադրության")],
+#         [KeyboardButton(text="📝 Իմ կազմած Playlist-ները")],
+#         [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
+#     ],
+#     resize_keyboard=True
+# )
 
 # 📖 Պատմության ենթամենյու
-story_menu = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="✍️ Շարունակիր պատմությունը")],
-        [KeyboardButton(text="📚 Ստեղծիր նոր պատմություն")],
-        [KeyboardButton(text="📖 Իմ պատմությունները")],
-        [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
-    ],
-    resize_keyboard=True
-)
+# story_menu = ReplyKeyboardMarkup(
+#     keyboard=[
+#         [KeyboardButton(text="✍️ Շարունակիր պատմությունը")],
+#         [KeyboardButton(text="📚 Ստեղծիր նոր պատմություն")],
+#         [KeyboardButton(text="📖 Իմ պատմությունները")],
+#         [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
+#     ],
+#     resize_keyboard=True
+# )
 
 # ✍️ Բանաստեղծություն ենթամենյու
-poetry_menu = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="💌 Սիրային քառյակ"), KeyboardButton(text="🔥 Rap տողեր")],
-        [KeyboardButton(text="🎭 Փիլիսոփայական տողեր")],
-        [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
-    ],
-    resize_keyboard=True
-)
+# poetry_menu = ReplyKeyboardMarkup(
+#     keyboard=[
+#         [KeyboardButton(text="💌 Սիրային քառյակ"), KeyboardButton(text="🔥 Rap տողեր")],
+#         [KeyboardButton(text="🎭 Փիլիսոփայական տողեր")],
+#         [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
+#     ],
+#     resize_keyboard=True
+# )
 
 gpt_reply_markup = ReplyKeyboardMarkup(
     keyboard=[
