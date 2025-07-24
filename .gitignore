@@ -11,3 +11,7 @@ __pycache__/
 chromedriver-linux64.zip
 
 chromedriver-linux64/
+
+db/
+
+init_db_*.py
