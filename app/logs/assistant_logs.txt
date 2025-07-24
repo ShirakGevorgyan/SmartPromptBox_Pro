@@ -1,8 +1,0 @@
-2025-07-24 15:27:48.732816 | User: ? | Mood: neutral | Tokens: prompt=563, answer=32, total=595
-2025-07-24 15:29:10.753923 | User: կարո՞ղ | Mood: neutral | Tokens: prompt=642, answer=57, total=699
-2025-07-24 15:29:23.963420 | User: կարո՞ղ | Mood: neutral | Tokens: prompt=710, answer=15, total=725
-2025-07-24 15:29:46.081499 | User: կարո՞ղ | Mood: neutral | Tokens: prompt=606, answer=27, total=633
-2025-07-24 15:30:11.069515 | User: կարո՞ղ | Mood: neutral | Tokens: prompt=666, answer=46, total=712
-2025-07-24 15:30:34.619846 | User: կարո՞ղ | Mood: neutral | Tokens: prompt=742, answer=40, total=782
-2025-07-24 15:31:04.418364 | User: կարո՞ղ | Mood: neutral | Tokens: prompt=623, answer=127, total=750
-2025-07-24 17:01:07.702703 | User: ? | Mood: neutral | Tokens: prompt=364, answer=27, total=391

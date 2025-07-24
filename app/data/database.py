@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.data.models.base import Base  # Միակ ընդհանուր Base-ը
+from app.data.models.base import Base
 from app.data.models.memory_model import UserMemory
 from app.data.models.session_model import UserSession
 

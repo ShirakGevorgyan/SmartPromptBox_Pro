@@ -15,10 +15,8 @@ def clean_garbage_from_plot(text: str) -> str:
     """
     Հանում է անկապ տեքստը՝ ոչ հայերեն սիմվոլներ, կոդային հատվածներ և տեխնիկական արտահայտություններ
     """
-    # Հանում է ASCII noise կամ խառն լեզվական հատվածներ
     text = re.sub(r"[^\u0531-\u0587\u0561-\u0587\u0531-\u0556\u0561-\u0587։,։…()\sA-Za-z0-9-]", " ", text)
-    
-    # Հանում է բազմաթիվ space-երը
+
     text = re.sub(r"\s{2,}", " ", text).strip()
 
     return text
@@ -29,10 +27,8 @@ def refine_plot_description(raw_text: str, client) -> str:
     """
     raw_text = raw_text.strip()
 
-    # Հեռացնում է աղբային, խառնած տեքստեր
     cleaned_input = clean_garbage_from_plot(raw_text)
 
-    # Սահմանափակում ենք առավելագույն երկարություն
     if len(cleaned_input) > MAX_PLOT_LENGTH:
         cleaned_input = cleaned_input[:MAX_PLOT_LENGTH].rsplit(".", 1)[0] + "։"
 

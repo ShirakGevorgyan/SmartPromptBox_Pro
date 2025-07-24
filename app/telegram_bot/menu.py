@@ -6,10 +6,6 @@ main_menu = ReplyKeyboardMarkup(
         [KeyboardButton(text="🧠 Mood Assistant")],
         [KeyboardButton(text="🎬 Ֆիլմեր և Սերիալներ"), KeyboardButton(text="🎵 Երգեր")],
         [KeyboardButton(text="🎨 Նկար գեներացիա"), KeyboardButton(text="⭐️ Խոսիր ինձ հետ")],
-        # [KeyboardButton(text="📜 Հիշողություն"), KeyboardButton(text="🎼 Իմ Playlist-ը")],
-        # [KeyboardButton(text="🎙 Ձայնային հարցում")],
-        # [KeyboardButton(text="📖 Պատմության շարունակություն"), KeyboardButton(text="✍️ Բանաստեղծություն / Քառյակ")],
-        # [KeyboardButton(text="📅 Օրվա առաջարկ")]
     ], 
     resize_keyboard=True
 )
@@ -52,7 +48,7 @@ movie_menu = ReplyKeyboardMarkup(
 
 song_menu = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="⬇️ Ներբեռնել երգ"), KeyboardButton(text="❤️ Տրամադրությամբ երգեր")],
+        [KeyboardButton(text="❤️ Տրամադրությամբ երգեր")],
         [KeyboardButton(text="🔀 Պատահական երգ")],
         [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
     ],
@@ -85,36 +81,6 @@ memory_menu = ReplyKeyboardMarkup(
     resize_keyboard=True
 )
 
-# 🎼 Playlist ենթամենյու
-# playlist_menu = ReplyKeyboardMarkup(
-#     keyboard=[
-#         [KeyboardButton(text="🎼 GPT Playlist առաջարկ"), KeyboardButton(text="🧠 Ըստ տրամադրության")],
-#         [KeyboardButton(text="📝 Իմ կազմած Playlist-ները")],
-#         [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
-#     ],
-#     resize_keyboard=True
-# )
-
-# 📖 Պատմության ենթամենյու
-# story_menu = ReplyKeyboardMarkup(
-#     keyboard=[
-#         [KeyboardButton(text="✍️ Շարունակիր պատմությունը")],
-#         [KeyboardButton(text="📚 Ստեղծիր նոր պատմություն")],
-#         [KeyboardButton(text="📖 Իմ պատմությունները")],
-#         [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
-#     ],
-#     resize_keyboard=True
-# )
-
-# ✍️ Բանաստեղծություն ենթամենյու
-# poetry_menu = ReplyKeyboardMarkup(
-#     keyboard=[
-#         [KeyboardButton(text="💌 Սիրային քառյակ"), KeyboardButton(text="🔥 Rap տողեր")],
-#         [KeyboardButton(text="🎭 Փիլիսոփայական տողեր")],
-#         [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
-#     ],
-#     resize_keyboard=True
-# )
 
 gpt_reply_markup = ReplyKeyboardMarkup(
     keyboard=[
@@ -129,7 +95,6 @@ movie_menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="🎞 Ֆիլմի նկարագրություն")],
         [KeyboardButton(text="🎲 Պատահական ֆիլմ")],
-        # [KeyboardButton(text="😊 Ֆիլմ ըստ տրամադրության")],
         [KeyboardButton(text="🔍 Ասա ֆիլմի անունը")],
         [KeyboardButton(text="🔙 Վերադառնալ Ֆիլմեր և Սերիալներ")],
         [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
@@ -143,7 +108,6 @@ series_menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="📘 Սերիալի նկարագրություն")],
         [KeyboardButton(text="🎲 Պատահական սերիալ")],
-        # [KeyboardButton(text="😊 Սերիալ ըստ տրամադրության")],
         [KeyboardButton(text="🔍 Ասա սերիալի անունը")],
         [KeyboardButton(text="🔙 Վերադառնալ Ֆիլմեր և Սերիալներ")],
         [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
@@ -162,7 +126,6 @@ film_and_series_menu = ReplyKeyboardMarkup(
 
 img_menu = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="Նոր նկար գեներացնել")],
         [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
     ]
 )

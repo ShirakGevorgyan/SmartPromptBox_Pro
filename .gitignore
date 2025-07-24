@@ -15,3 +15,5 @@ chromedriver-linux64/
 db/
 
 init_db_*.py
+
+app/data/logs/

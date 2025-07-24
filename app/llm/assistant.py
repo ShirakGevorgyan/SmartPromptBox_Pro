@@ -14,7 +14,6 @@ from app.data.memory_service import (
     save_history
 )
 
-# ✅ Նոր ֆունկցիաներ
 from app.utils.retry import retry_async
 from app.utils.summarizer import summarize_history
 
@@ -22,7 +21,6 @@ load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 client = AsyncOpenAI(api_key=api_key)
 
-# 🆕 get_or_create_user
 def get_or_create_user(session: Session, user_id: str) -> UserMemory:
     user = session.query(UserMemory).filter_by(user_id=user_id).first()
     if not user:
@@ -31,7 +29,6 @@ def get_or_create_user(session: Session, user_id: str) -> UserMemory:
         session.commit()
     return user
 
-# ⏳ Տրամադրության որոշում
 def detect_user_mood(history: List[Dict[str, str]]) -> str:
     texts = [m["content"] for m in reversed(history) if m["role"] == "user"]
     recent_text = " ".join(texts[:2])
@@ -41,7 +38,6 @@ def detect_user_mood(history: List[Dict[str, str]]) -> str:
     polarity = blob.sentiment.polarity
     return "positive" if polarity > 0.3 else "negative" if polarity < -0.3 else "neutral"
 
-# 🧑 Անունների դուրս բերում
 def extract_names(history: List[Dict[str, str]]) -> Tuple[str, str]:
     user_name, bot_name = "", ""
     for m in reversed(history):
@@ -58,7 +54,6 @@ def extract_names(history: List[Dict[str, str]]) -> Tuple[str, str]:
                         bot_name = parts[i + 1].strip(".,?!")
     return user_name, bot_name
 
-# 🤖 Գլխավոր GPT ֆունկցիա
 async def gpt_assistant_conversation(user_id: str, new_message: str) -> str:
     session: Session = SessionLocal()
 
@@ -78,7 +73,6 @@ async def gpt_assistant_conversation(user_id: str, new_message: str) -> str:
         user.last_mood = mood
         session.commit()
 
-        # 📚 Եթե history շատ է՝ ամփոփում ենք
         if len(history) > 10:
             summary = await summarize_history(history[:-5])
             history = history[-5:]
@@ -87,7 +81,7 @@ async def gpt_assistant_conversation(user_id: str, new_message: str) -> str:
                 "content": f"📌 Նախորդ խոսակցությունների ամփոփում՝ {summary}"
             })
 
-        # 📜 System Prompt
+        # System Prompt
         prompt = f"""
 Դու կոչվում ես {user.bot_name}։ Դու խելացի, մարդանման AI օգնական ես, որը միշտ խոսում է հստակ, գեղեցիկ և տրամաբանական հայերենով։
 
@@ -116,7 +110,6 @@ async def gpt_assistant_conversation(user_id: str, new_message: str) -> str:
 
         messages = [{"role": "system", "content": prompt}] + history
 
-        # ✅ GPT հարցումը wrapped in retry
         async def ask_gpt():
             return await client.chat.completions.create(
                 model="gpt-4o",
@@ -130,7 +123,7 @@ async def gpt_assistant_conversation(user_id: str, new_message: str) -> str:
 
         answer = response.choices[0].message.content.strip()
 
-        # ❌ If GPT says nonsense, fallback
+        #  If GPT says nonsense, fallback
         banned_words = ["արշավին", "միանալ", "հոգսերին", "ձեզակերպ"]
         if all(word in answer.lower() for word in banned_words):
             answer = f"Բարև 🤗 Ես {user.bot_name} եմ՝ քո խելացի օգնականը։ Ինչով կարող եմ օգնել այսօր։"
@@ -138,10 +131,10 @@ async def gpt_assistant_conversation(user_id: str, new_message: str) -> str:
         history.append({"role": "assistant", "content": answer})
         save_history(session, user_id, history)
 
-        # 🪵 Token logging
+        #  Token logging
         usage = response.usage
-        os.makedirs("app/logs", exist_ok=True)
-        with open("app/logs/assistant_logs.txt", "a", encoding="utf-8") as log:
+        os.makedirs("app/data/logs", exist_ok=True)
+        with open("app/data/logs/assistant_logs.txt", "a", encoding="utf-8") as log:
             log.write(
                 f"{datetime.now()} | User: {user.user_name or '?'} | Mood: {mood} | "
                 f"Tokens: prompt={usage.prompt_tokens}, answer={usage.completion_tokens}, total={usage.total_tokens}\n"

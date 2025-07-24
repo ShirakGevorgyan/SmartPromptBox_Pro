@@ -13,18 +13,12 @@ from app.telegram_bot.handlers import mood_handler
 
 
 from app.telegram_bot.handlers import (
-    songs_handler,
-    # download_handler,
-    story_handler,
-    fallback,
-    send_pdf_handler,
     song_menu_handler,
     random_songs_handler,
     gpt_memory_chat_handler,
     movie_menu_handler,
     series_menu_handler,
     img_handler,
-    # voice_creation_handler,
 )
 
 # ✅ Մենյուներ
@@ -53,21 +47,13 @@ async def main():
     dp = Dispatcher(storage=storage)
 
     # ✅ Ռաութերների գրանցում (song_menu_handler-ը ամենավերևում)
-    # dp.include_router(img_handler.router)
     dp.include_router(gpt_memory_chat_handler.router)
-    # dp.include_router(voice_creation_handler.router)
     dp.include_router(song_menu_handler.router)
     dp.include_router(mood_handler.router)
-    dp.include_router(songs_handler.router)
     dp.include_router(random_songs_handler.router)
-    # dp.include_router(download_handler.router)
     dp.include_router(series_menu_handler.router)
     dp.include_router(movie_menu_handler.router)
     dp.include_router(img_handler.router)
-    dp.include_router(story_handler.router)
-    dp.include_router(fallback.router)
-    dp.include_router(send_pdf_handler.router)
-    # dp.include_router(img_handler.router)
 
     # ✅ /start command գրանցում
     dp.message.register(start_command_handler, CommandStart())
