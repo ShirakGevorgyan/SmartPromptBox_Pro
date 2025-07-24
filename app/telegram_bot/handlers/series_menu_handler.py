@@ -5,27 +5,43 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import re
 
+from app.telegram_bot.handlers.movie_menu_handler import split_movies
 from app.telegram_bot.menu import (
     series_menu,
     film_and_series_menu,
     main_menu,
+    series_genre_menu,
 )
 from app.llm.series_picker import (
     get_random_series_llm,
     suggest_series_by_description_llm,
-    get_series_details_by_name_llm
+    get_series_details_by_name_llm,
+    get_top_10_series_llm,
+    get_series_by_genre_llm
 )
 
 router = Router()
 
 
-# --- STATES ---
 class SeriesStates(StatesGroup):
     waiting_for_description = State()
     waiting_for_series_name = State()
+    waiting_for_genre = State()
 
 
-# --- ՕԳՆԱԿԱՆ ՖՈՒՆԿՑԻԱՆԵՐ ---
+SERIES_GENRE_MAP = {
+    "🎭 Դրամա": "Drama",
+    "😂 Կատակերգություն": "Comedy",
+    "🚀 Գիտաֆանտաստիկա": "Science Fiction",
+    "🧙 Ֆանտազիա": "Fantasy",
+    "😱 Սարսափ": "Horror",
+    "🕵️ Թրիլեր": "Thriller",
+    "💘 Ռոմանտիկա": "Romance",
+    "👨‍👩‍👧 Ընտանեկան": "Family",
+    "🎬 Պատմական": "Historical",
+    "🧩 Միստիկա": "Mystery"
+}
+
 def extract_links_from_text(text: str):
     trailer_match = re.search(r"Տրեյլեր՝ \[.*?\]\((.*?)\)", text)
     watch_match = re.search(r"Դիտելու հղում՝ \[.*?\]\((.*?)\)", text)
@@ -47,7 +63,7 @@ async def send_long_message(message: Message, full_text: str, reply_markup=None)
         await message.answer(chunk, reply_markup=markup)
 
 
-# --- ՄԵՆՅՈՒՆԵՐ ---
+
 @router.message(F.text.func(lambda text: text.strip() == "🎬 Ֆիլմեր և Սերիալներ"))
 async def open_film_and_series_menu(message: Message):
     await message.answer("🎥 Ընտրիր՝ ֆիլմեր թե սերիալներ։", reply_markup=film_and_series_menu)
@@ -65,7 +81,7 @@ async def back_to_main_menu(message: Message):
     await message.answer("🏠 Գլխավոր մենյու", reply_markup=main_menu)
 
 
-# --- ՊԱՏԱՀԱԿԱՆ ՍԵՐԻԱԼ ---
+
 @router.message(F.text.in_({"🎲 Պատահական սերիալ", "🔁 Նոր պատահական սերիալ"}))
 async def send_random_series(message: Message):
     await message.answer("🎯 Ընտրում եմ պատահական սերիալ... ⏳")
@@ -90,7 +106,7 @@ async def send_random_series(message: Message):
     await message.answer("⬇️ Ընտրիր հաջորդ քայլը։", reply_markup=reply_keyboard)
 
 
-# --- ՆԿԱՐԱԳՐՈՒԹՅԱՄԲ ՍԵՐԻԱԼ ---
+
 @router.message(F.text.in_({"📘 Սերիալի նկարագրություն", "🔁 Նոր սերիալի նկարագրություն"}))
 async def ask_description(message: Message, state: FSMContext):
     await state.set_state(SeriesStates.waiting_for_description)
@@ -123,7 +139,7 @@ async def handle_description(message: Message, state: FSMContext):
     await state.clear()
 
 
-# --- ՍԵՐԻԱԼԻ ԱՆՈՒՆՈՎ ՓՆՏՐՈՒՄ ---
+
 @router.message(F.text == "🔍 Ասա սերիալի անունը")
 async def ask_series_name(message: Message, state: FSMContext):
     await state.set_state(SeriesStates.waiting_for_series_name)
@@ -159,3 +175,80 @@ async def handle_series_name(message: Message, state: FSMContext):
 @router.message(F.text == "🔍 Նոր սերիալի անուն")
 async def repeat_series_name(message: Message, state: FSMContext):
     await ask_series_name(message, state)
+
+def format_series_text(chunk: str) -> str:
+    lines = chunk.strip().split("\n")
+    data = {}
+
+    for line in lines:
+        if "Վերնագիր" in line:
+            data["title"] = line.replace("🎥 Վերնագիր՝", "").strip()
+        elif "Ժանրը" in line:
+            data["genre"] = line.replace("🎭 Ժանրը՝", "").strip()
+        elif "Ռեժիսոր" in line:
+            data["director"] = line.replace("🎬 Ռեժիսոր՝", "").strip()
+        elif "Դերասաններ" in line:
+            data["actors"] = line.replace("🎭 Դերասաններ՝", "").strip()
+        elif "Սյուժե" in line:
+            data["plot"] = line.replace("📜 Սյուժե՝", "").strip()
+        elif "IMDb գնահատական" in line:
+            data["rating"] = line.replace("📊 IMDb գնահատական՝", "").strip()
+
+    formatted = (
+        f"<b>🎥 {data.get('title', '')}</b>\n"
+        f"🎭 <b>Ժանրը՝</b> {data.get('genre', '')}\n"
+        f"🎬 <b>Ռեժիսոր՝</b> {data.get('director', '')}\n"
+        f"🧑‍🎤 <b>Դերասաններ՝</b> {data.get('actors', '')}\n"
+        f"📜 <b>Սյուժե՝</b> {data.get('plot', '')}\n"
+        f"📊 <b>IMDb գնահատական՝</b> {data.get('rating', '')}"
+    )
+    return formatted
+
+
+async def send_series_blocks(text: str, message: Message):
+    series_chunks = split_movies(text)  # ✅ OK այսպես պահել
+
+    for chunk in series_chunks:
+        trailer_url, watch_url = extract_links_from_text(chunk)
+        pretty_text = format_series_text(chunk)
+
+        inline_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🎞 Տրեյլեր", url=trailer_url)],
+            [InlineKeyboardButton(text="🌐 Դիտել", url=watch_url)]
+        ])
+        await message.answer(pretty_text, parse_mode="HTML", reply_markup=inline_keyboard)
+
+
+
+@router.message(F.text == "🔥 Լավագույն 10 սերիալ")
+async def top_10_series_handler(message: Message):
+    await message.answer("📺 Ընտրում եմ լավագույն սերիալները...")
+
+    result = get_top_10_series_llm()
+    await send_series_blocks(result, message)
+
+    await message.answer("⬇️ Ընտրիր հաջորդ քայլը։", reply_markup=series_menu)
+
+
+@router.message(F.text == "🎭 Սերիալ ըստ ժանրի")
+async def ask_series_genre(message: Message, state: FSMContext):
+    await message.answer("📺 Ընտրիր սերիալի ժանրը։", reply_markup=series_genre_menu)
+    await state.set_state(SeriesStates.waiting_for_genre)
+
+
+@router.message(SeriesStates.waiting_for_genre)
+async def handle_series_genre(message: Message, state: FSMContext):
+    selected = message.text.strip()
+    genre = SERIES_GENRE_MAP.get(selected)
+
+    if not genre:
+        await message.answer("❌ Չճանաչված ժանր։ Խնդրում եմ ընտրիր ցանկից։", reply_markup=series_genre_menu)
+        return
+
+    await message.answer(f"🔍 Փնտրում եմ `{selected}` ժանրով սերիալներ...")
+
+    result = get_series_by_genre_llm(genre)
+    await send_series_blocks(result, message)
+
+    await message.answer("🤖 Կարող ես ընտրել այլ ժանր կամ վերադառնալ մենյու։", reply_markup=series_genre_menu)
+    await state.set_state(SeriesStates.waiting_for_genre)

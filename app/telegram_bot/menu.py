@@ -35,25 +35,34 @@ mood_options_menu = ReplyKeyboardMarkup(
 )
 
 # 🎬 Ֆիլմեր ենթամենյու
-movie_menu = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="🎭 Ժանրով առաջարկներ")],
-        [KeyboardButton(text="🔥 Լավագույն 10 ֆիլմ"), KeyboardButton(text="📺 Լավագույն սերիալներ")],
-        [KeyboardButton(text="🧠 Խորը իմաստով ֆիլմեր")],
-        [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
-    ],
-    resize_keyboard=True
-)
 
 
 song_menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="❤️ Տրամադրությամբ երգեր")],
+        [KeyboardButton(text="🎧 Ըստ ոճի"), KeyboardButton(text="📝 Ըստ նկարագրության")],
+        [KeyboardButton(text="🧑‍🎤 Արտիստի լավագույն երգերը")],
         [KeyboardButton(text="🔀 Պատահական երգ")],
         [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
     ],
     resize_keyboard=True
 )
+
+
+
+genre_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="🎸 Ռոք"), KeyboardButton(text="🎹 Ջազ")],
+        [KeyboardButton(text="🎤 Ռեփ"), KeyboardButton(text="🎶 Փոփ")],
+        [KeyboardButton(text="💃 Լատինո"), KeyboardButton(text="🎻 Կլասիկ")],
+        [KeyboardButton(text="🏞 Ֆոլք"), KeyboardButton(text="🎼 Էլեկտրոնային")],
+        [KeyboardButton(text="🔥 Մետալ"), KeyboardButton(text="🎷 Ֆանկ")],
+        [KeyboardButton(text="🔙 Վերադառնալ Երգեր մենյու")],
+        [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
+    ],
+    resize_keyboard=True
+)
+
 
 random_song_menu = ReplyKeyboardMarkup(
     keyboard=[
@@ -71,16 +80,6 @@ song_action_menu = ReplyKeyboardMarkup(
     resize_keyboard=True
 )
 
-# 📜 Հիշողություն ենթամենյու
-memory_menu = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="🕘 Նախորդ հարցումներ")],
-        [KeyboardButton(text="⭐ Ֆավորիտներ")],
-        [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
-    ],
-    resize_keyboard=True
-)
-
 
 gpt_reply_markup = ReplyKeyboardMarkup(
     keyboard=[
@@ -91,11 +90,13 @@ gpt_reply_markup = ReplyKeyboardMarkup(
 )
 
 
+
+
 movie_menu = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="🎞 Ֆիլմի նկարագրություն")],
+        [KeyboardButton(text="🎭 Ժանրով առաջարկներ"), KeyboardButton(text="🔥 Լավագույն 10 ֆիլմ")],
+        [KeyboardButton(text="🎞 Ֆիլմի նկարագրություն"), KeyboardButton(text="🔍 Ասա ֆիլմի անունը")],
         [KeyboardButton(text="🎲 Պատահական ֆիլմ")],
-        [KeyboardButton(text="🔍 Ասա ֆիլմի անունը")],
         [KeyboardButton(text="🔙 Վերադառնալ Ֆիլմեր և Սերիալներ")],
         [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
     ],
@@ -104,11 +105,12 @@ movie_menu = ReplyKeyboardMarkup(
 
 
 
+
 series_menu = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="📘 Սերիալի նկարագրություն")],
+        [KeyboardButton(text="🎭 Սերիալ ըստ ժանրի"), KeyboardButton(text="🔥 Լավագույն 10 սերիալ")],
+        [KeyboardButton(text="📘 Սերիալի նկարագրություն"), KeyboardButton(text="🔍 Ասա սերիալի անունը")],
         [KeyboardButton(text="🎲 Պատահական սերիալ")],
-        [KeyboardButton(text="🔍 Ասա սերիալի անունը")],
         [KeyboardButton(text="🔙 Վերադառնալ Ֆիլմեր և Սերիալներ")],
         [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
     ],
@@ -119,6 +121,32 @@ film_and_series_menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="🎥 Ֆիլմեր")],
         [KeyboardButton(text="📺 Սերիալներ")],
+        [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
+    ],
+    resize_keyboard=True
+)
+
+movie_genre_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="🎬 Ակցիա"), KeyboardButton(text="😂 Կատակերգություն")],
+        [KeyboardButton(text="😱 Սարսափ"), KeyboardButton(text="🎭 Դրամա")],
+        [KeyboardButton(text="💘 Ռոմանտիկա"), KeyboardButton(text="🕵️ Միստիկա / Թրիլեր")],
+        [KeyboardButton(text="🚀 Գիտաֆանտաստիկա"), KeyboardButton(text="🧙 Ֆանտազիա")],
+        [KeyboardButton(text="🎥 Պատմական"), KeyboardButton(text="👨‍👩‍👧 Ընտանեկան")],
+        [KeyboardButton(text="🔙 Վերադառնալ Ֆիլմեր և Սերիալներ")],
+        [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
+    ],
+    resize_keyboard=True
+)
+
+series_genre_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="🎭 Դրամա"), KeyboardButton(text="😂 Կատակերգություն")],
+        [KeyboardButton(text="🚀 Գիտաֆանտաստիկա"), KeyboardButton(text="🧙 Ֆանտազիա")],
+        [KeyboardButton(text="😱 Սարսափ"), KeyboardButton(text="🕵️ Թրիլեր")],
+        [KeyboardButton(text="💘 Ռոմանտիկա"), KeyboardButton(text="👨‍👩‍👧 Ընտանեկան")],
+        [KeyboardButton(text="🎬 Պատմական"), KeyboardButton(text="🧩 Միստիկա")],
+        [KeyboardButton(text="🔙 Վերադառնալ Ֆիլմեր և Սերիալներ")],
         [KeyboardButton(text="🔝 Վերադառնալ գլխավոր մենյու")]
     ],
     resize_keyboard=True
