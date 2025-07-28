@@ -17,9 +17,16 @@ from app.data.memory_service import (
 from app.utils.retry import retry_async
 from app.utils.summarizer import summarize_history
 
-load_dotenv()
-api_key = os.getenv("OPENAI_API_KEY")
-client = AsyncOpenAI(api_key=api_key)
+from functools import lru_cache
+
+@lru_cache()
+def get_openai_client() -> AsyncOpenAI:
+    load_dotenv()
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError("OPENAI_API_KEY environment variable is missing.")
+    return AsyncOpenAI(api_key=api_key)
+
 
 def get_or_create_user(session: Session, user_id: str) -> UserMemory:
     user = session.query(UserMemory).filter_by(user_id=user_id).first()
@@ -29,6 +36,7 @@ def get_or_create_user(session: Session, user_id: str) -> UserMemory:
         session.commit()
     return user
 
+
 def detect_user_mood(history: List[Dict[str, str]]) -> str:
     texts = [m["content"] for m in reversed(history) if m["role"] == "user"]
     recent_text = " ".join(texts[:2])
@@ -37,6 +45,7 @@ def detect_user_mood(history: List[Dict[str, str]]) -> str:
     blob = TextBlob(recent_text)
     polarity = blob.sentiment.polarity
     return "positive" if polarity > 0.3 else "negative" if polarity < -0.3 else "neutral"
+
 
 def extract_names(history: List[Dict[str, str]]) -> Tuple[str, str]:
     user_name, bot_name = "", ""
@@ -54,9 +63,9 @@ def extract_names(history: List[Dict[str, str]]) -> Tuple[str, str]:
                         bot_name = parts[i + 1].strip(".,?!")
     return user_name, bot_name
 
+
 async def gpt_assistant_conversation(user_id: str, new_message: str) -> str:
     session: Session = SessionLocal()
-
     try:
         user = get_or_create_user(session, user_id)
         history = load_history(session, user_id)
@@ -81,7 +90,6 @@ async def gpt_assistant_conversation(user_id: str, new_message: str) -> str:
                 "content": f"📌 Նախորդ խոսակցությունների ամփոփում՝ {summary}"
             })
 
-        # System Prompt
         prompt = f"""
 Դու կոչվում ես {user.bot_name}։ Դու խելացի, մարդանման AI օգնական ես, որը միշտ խոսում է հստակ, գեղեցիկ և տրամաբանական հայերենով։
 
@@ -109,7 +117,7 @@ async def gpt_assistant_conversation(user_id: str, new_message: str) -> str:
             prompt += "\nՕգտատերը տխուր է։ Խոսիր հանգիստ, մխիթարող տոնով 😢"
 
         messages = [{"role": "system", "content": prompt}] + history
-
+        client = get_openai_client()
         async def ask_gpt():
             return await client.chat.completions.create(
                 model="gpt-4o",
@@ -123,7 +131,6 @@ async def gpt_assistant_conversation(user_id: str, new_message: str) -> str:
 
         answer = response.choices[0].message.content.strip()
 
-        #  If GPT says nonsense, fallback
         banned_words = ["արշավին", "միանալ", "հոգսերին", "ձեզակերպ"]
         if all(word in answer.lower() for word in banned_words):
             answer = f"Բարև 🤗 Ես {user.bot_name} եմ՝ քո խելացի օգնականը։ Ինչով կարող եմ օգնել այսօր։"
@@ -131,7 +138,6 @@ async def gpt_assistant_conversation(user_id: str, new_message: str) -> str:
         history.append({"role": "assistant", "content": answer})
         save_history(session, user_id, history)
 
-        #  Token logging
         usage = response.usage
         os.makedirs("app/data/logs", exist_ok=True)
         with open("app/data/logs/assistant_logs.txt", "a", encoding="utf-8") as log:

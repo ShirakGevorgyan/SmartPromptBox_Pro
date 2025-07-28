@@ -17,15 +17,17 @@ def parse_fallback_list(response: str) -> List[Dict[str, str]]:
     lines = response.splitlines()
     fallback = []
     for line in lines:
-        if "-" in line:
-            parts = line.split(" - ")
-            fallback.append({
-                "title": parts[1].strip() if len(parts) > 1 else parts[0].strip(),
-                "artist": parts[0].strip(),
-                "description": "Նկարագրություն չկա։",
-                "youtube": ""
-            })
+        if " - " in line:
+            parts = [p.strip() for p in line.split(" - ", 1)]
+            if len(parts) == 2:
+                fallback.append({
+                    "title": parts[1],
+                    "artist": parts[0],
+                    "description": "Նկարագրություն չկա։",
+                    "youtube": ""
+                })
     return fallback
+
 
 def generate_songs_for_mood(mood: str) -> List[Dict[str, str]]:
     system_prompt = (

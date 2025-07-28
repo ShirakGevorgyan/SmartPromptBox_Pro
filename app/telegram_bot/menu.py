@@ -1,6 +1,5 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
-# 🎛️ Գլխավոր մենյու
 main_menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="🧠 Mood Assistant")],
@@ -10,7 +9,6 @@ main_menu = ReplyKeyboardMarkup(
     resize_keyboard=True
 )
 
-# 🧠 Mood Assistant տրամադրության ընտրության մենյու
 mood_menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="😢 Տխուր եմ"), KeyboardButton(text="🥰 Սիրահարված եմ")],
@@ -23,7 +21,7 @@ mood_menu = ReplyKeyboardMarkup(
     resize_keyboard=True
 )
 
-# 🧠 Mood Assistant ենթաբաժիններ տրամադրության հիման վրա
+
 mood_options_menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="🎵 5 երգ"), KeyboardButton(text="🎬 5 ֆիլմ")],
@@ -33,8 +31,6 @@ mood_options_menu = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True
 )
-
-# 🎬 Ֆիլմեր ենթամենյու
 
 
 song_menu = ReplyKeyboardMarkup(
@@ -47,7 +43,6 @@ song_menu = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True
 )
-
 
 
 genre_menu = ReplyKeyboardMarkup(
@@ -90,8 +85,6 @@ gpt_reply_markup = ReplyKeyboardMarkup(
 )
 
 
-
-
 movie_menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="🎭 Ժանրով առաջարկներ"), KeyboardButton(text="🔥 Լավագույն 10 ֆիլմ")],
@@ -102,8 +95,6 @@ movie_menu = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True
 )
-
-
 
 
 series_menu = ReplyKeyboardMarkup(

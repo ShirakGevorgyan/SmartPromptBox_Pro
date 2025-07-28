@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton#, FSInputFile, CallbackQuery
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
 from app.telegram_bot.menu import mood_menu, mood_options_menu, main_menu
 from app.llm.mood_inferencer import (
@@ -11,12 +11,9 @@ from app.llm.image_generator import (
     generate_image_prompts_from_mood,
     generate_images_from_prompts,
 )
-# from app.llm.clean_title import clean_song_title_llm
-# from app.utils.youtube_downloader import download_audio
 
 router = Router()
 
-# ✅ Mood Assistant մենյու
 @router.message(F.text == "🧠 Mood Assistant")
 async def mood_main(message: Message, state: FSMContext):
     await state.clear()
@@ -35,7 +32,6 @@ async def mood_chosen(message: Message, state: FSMContext):
     await state.update_data(mood=mood)
     await message.answer("Ի՞նչ ես ուզում ստանալ այդ տրամադրությամբ 😇", reply_markup=mood_options_menu)
 
-# ✅ Ֆիլմեր ուղարկող ֆունկցիա
 async def send_movies_as_buttons(movies: list[dict], message):
     for i, movie in enumerate(movies, 1):
         text = (
@@ -49,7 +45,7 @@ async def send_movies_as_buttons(movies: list[dict], message):
         ])
         await message.answer(text, parse_mode="HTML", reply_markup=keyboard)
 
-# ✅ Երգեր ուղարկող ֆունկցիա
+
 async def send_song_buttons(songs: list[dict], message: Message, state: FSMContext):
     await state.update_data(songs_for_download=songs)  # store full list in FSM
 
@@ -67,40 +63,10 @@ async def send_song_buttons(songs: list[dict], message: Message, state: FSMConte
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="🔗 YouTube", url=youtube_url)],
-            # [InlineKeyboardButton(text="⬇️ Ներբեռնել", callback_data=callback_data)]
         ])
         await message.answer(text, parse_mode="HTML", reply_markup=keyboard)
 
-# # ✅ Callback ֆունկցիա ներբեռնելու համար
-# @router.callback_query(F.data.startswith("download_"))
-# async def handle_download_callback(callback: CallbackQuery, state: FSMContext):
-#     await callback.answer("⬇️ Ներբեռնում եմ...")
 
-#     try:
-#         index = int(callback.data.split("_")[1])
-#         data = await state.get_data()
-#         songs = data.get("songs_for_download", [])
-
-#         if index < 0 or index >= len(songs):
-#             await callback.message.answer("❌ Սխալ ինդեքս։")
-#             return
-
-#         song = songs[index]
-#         youtube_url = song["youtube"]
-#         title = song["title"]
-
-#         clean_name = clean_song_title_llm(title)
-#         file_path = download_audio(youtube_url, filename=clean_name)
-#         audio = FSInputFile(file_path)
-
-#         await callback.message.answer_audio(audio, caption=f"🎵 {clean_name}")
-#         await callback.message.delete()
-
-#     except Exception as e:
-#         print("❌ Download error:", e)
-#         await callback.message.answer("Չհաջողվեց ներբեռնել երգը։")
-
-# ✅ Mood-ի վրա հիմնված բովանդակություն
 @router.message(F.text.in_([
     "🎵 5 երգ", "🎬 5 ֆիլմ", "💬 5 մեջբերում", "🖼 2 նկարների նկարագրություն"
 ]))
@@ -144,21 +110,17 @@ async def mood_generate(message: Message, state: FSMContext):
     
 @router.message(F.text == "❤️ Տրամադրությամբ երգեր")
 async def show_mood_menu(message: Message, state: FSMContext):
-    # ջնջենք նախորդ տրամադրությունը (եթե կար)
     await state.clear()
     
-    # ուղարկենք տրամադրությունների ընտրացանկը
     await message.answer(
         "🔍 Ընտրիր քո տրամադրությունը՝ ես կօգնեմ քեզ երգով 🎶",
         reply_markup=mood_menu
     ) 
-    
-# ✅ Վերադառնալ տրամադրության ընտրությանը
+
 @router.message(F.text == "🔙 Վերադառնալ տրամադրության ընտրությանը")
 async def back_to_mood(message: Message):
     await message.answer("Ընտրիր նոր տրամադրություն 👇", reply_markup=mood_menu)
 
-# ✅ Վերադառնալ գլխավոր մենյու
 @router.message(F.text == "🔝 Վերադառնալ գլխավոր մենյու")
 async def back_to_main_menu(message: Message, state: FSMContext):
     await state.clear()
