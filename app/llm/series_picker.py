@@ -7,7 +7,6 @@ from app.llm.text_utils import replace_plot_with_refined
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# 🎲 1. Պատահական սերիալ
 def get_random_series_llm() -> str:
     genres = [
         "դրամա", "կատակերգություն", "գիտաֆանտաստիկա", "միստիկա", "հոգեբանական թրիլլեր",
@@ -61,7 +60,6 @@ def get_random_series_llm() -> str:
     return replace_plot_with_refined(raw_output, client)
 
 
-# 🎞 2. Ըստ նկարագրության
 def suggest_series_by_description_llm(description: str) -> str:
     prompt = f"""
 Օգտատերը ցանկանում է սերիալ առաջարկ՝ ըստ նկարագրության․
@@ -89,7 +87,6 @@ def suggest_series_by_description_llm(description: str) -> str:
     return replace_plot_with_refined(raw_output, client)
 
 
-# 🔍 3. Մանրամասն ինֆո ըստ անվանման
 def get_series_details_by_name_llm(series_name: str) -> str:
     prompt = f"""
 Օգտատերը գրում է սերիալի անունը՝ «{series_name}»

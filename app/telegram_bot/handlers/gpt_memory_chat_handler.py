@@ -10,7 +10,8 @@ from app.data.database import SessionLocal
 
 router = Router()
 
-# ✅ Սկսել GPT զրույց՝ "⭐️ Խոսիր ինձ հետ"
+
+
 @router.message(F.text == "⭐️ Խոսիր ինձ հետ")
 async def start_conversation(message: Message, state: FSMContext):
     print("✅ Սկսեց GPT զրույցը")
@@ -19,8 +20,8 @@ async def start_conversation(message: Message, state: FSMContext):
 
     start_msg = await message.answer("🧠 Բարև, գրիր որևէ բան և ես կպատասխանեմ։", reply_markup=gpt_reply_markup)
     await state.update_data(message_ids=[start_msg.message_id])
-
-# ✅ GPT Շարունակություն
+    
+    
 @router.message(GPTMemoryStates.chatting)
 async def continue_conversation(message: Message, state: FSMContext):
     user_input = message.text
@@ -54,16 +55,13 @@ async def continue_conversation(message: Message, state: FSMContext):
     try:
         user_id = str(message.from_user.id)
 
-        # ✅ Ստեղծենք կամ թարմացնենք session-ը
         db = SessionLocal()
         try:
-            # session_id = get_or_create_user_session(db, user_id) # ❗️Ապագայում հնարավոր է պետք գա session-ի ID-ն
             get_or_create_user_session(db, user_id)
             update_session_info(db, user_id, last_question=user_input)
         finally:
             db.close()
 
-        # 🧠 Կանչում ենք GPT օգնականին
         reply = await gpt_assistant_conversation(user_id=user_id, new_message=user_input)
 
         history.append({"role": "assistant", "content": reply})

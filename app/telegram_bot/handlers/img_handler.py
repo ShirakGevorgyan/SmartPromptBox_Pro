@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 import os
 
-from app.telegram_bot.menu import main_menu, img_menu  # ավելացրել ենք main_menu
+from app.telegram_bot.menu import main_menu, img_menu 
 from app.llm.img_generator import generate_image
 
 router = Router()
@@ -42,7 +42,6 @@ async def handle_prompt(message: Message, state: FSMContext):
             )
             os.remove(image_path)
 
-            # Նոր ընտրացանկ գեներացումից հետո
             await message.answer(
                 "🔚 Ինչ ես ուզում անել հաջորդը?",
                 reply_markup=ReplyKeyboardMarkup(

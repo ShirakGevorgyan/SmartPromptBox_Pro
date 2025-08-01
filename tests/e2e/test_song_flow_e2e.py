@@ -36,7 +36,7 @@ async def test_gpt_conversation_e2e():
         patch("app.data.db_session_tracker.update_session_info", return_value=None),
         patch("aiogram.client.bot.Bot.delete_message", new_callable=AsyncMock)
     ):
-        # 1. Սկսում ենք GPT զրույցը
+
         start_msg = Message(
             message_id=1,
             from_user=user,
@@ -46,7 +46,7 @@ async def test_gpt_conversation_e2e():
         )
         await dp.feed_update(bot=bot, update=Update(update_id=1, message=start_msg))
 
-        # 2. Ուղարկում ենք GPT հարց
+
         gpt_msg = Message(
             message_id=2,
             from_user=user,
@@ -56,7 +56,7 @@ async def test_gpt_conversation_e2e():
         )
         await dp.feed_update(bot=bot, update=Update(update_id=2, message=gpt_msg))
 
-        # 3. Վերադարձ գլխավոր մենյու
+
         back_msg = Message(
             message_id=3,
             from_user=user,
@@ -66,7 +66,6 @@ async def test_gpt_conversation_e2e():
         )
         await dp.feed_update(bot=bot, update=Update(update_id=3, message=back_msg))
 
-        # 4. Կրկին սկսում ենք զրույց, ապա մաքրում
         restart_msg = Message(
             message_id=4,
             from_user=user,
@@ -89,7 +88,7 @@ async def test_gpt_conversation_e2e():
     for c in captured:
         print("👉", c)
 
-    assert any("🧠" in c for c in captured)  # սկիզբ
-    assert any("Ես GPT մոդել" in c for c in captured)  # GPT պատասխանը
-    assert any("🏠" in c for c in captured)  # գլխավոր մենյու
-    assert any("📭 Զրույցը մաքրված է" in c for c in captured)  # մաքրում
+    assert any("🧠" in c for c in captured) 
+    assert any("Ես GPT մոդել" in c for c in captured)
+    assert any("🏠" in c for c in captured)
+    assert any("📭 Զրույցը մաքրված է" in c for c in captured)

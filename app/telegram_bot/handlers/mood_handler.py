@@ -47,7 +47,7 @@ async def send_movies_as_buttons(movies: list[dict], message):
 
 
 async def send_song_buttons(songs: list[dict], message: Message, state: FSMContext):
-    await state.update_data(songs_for_download=songs)  # store full list in FSM
+    await state.update_data(songs_for_download=songs)  
 
     for idx, song in enumerate(songs):
         title = song["title"]

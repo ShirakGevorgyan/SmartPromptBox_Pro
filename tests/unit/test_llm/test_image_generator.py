@@ -2,10 +2,9 @@ from unittest.mock import patch, MagicMock
 from app.llm import image_generator
 
 
-# ✅ Test 1: generate_image_prompts_from_mood
 @patch("app.llm.image_generator.client")
 def test_generate_image_prompts_from_mood(mock_client):
-    # Mock GPT response
+    
     mock_response_text = """1. A lonely tree standing in the fog at dawn.  
 2. A person walking alone under heavy rain with neon lights reflecting on wet streets."""
     
@@ -19,12 +18,10 @@ def test_generate_image_prompts_from_mood(mock_client):
     assert "fog" in prompts[0] or "rain" in prompts[1]
 
 
-# ✅ Test 2: generate_images_from_prompts
 @patch("app.llm.image_generator.client")
 def test_generate_images_from_prompts(mock_client):
     prompts = ["A cozy cabin in snowy mountains", "Sunset over a calm ocean"]
 
-    # Mock DALL·E image response
     mock_client.images.generate.return_value.data = [
         MagicMock(url="https://fakeimage1.com")
     ]

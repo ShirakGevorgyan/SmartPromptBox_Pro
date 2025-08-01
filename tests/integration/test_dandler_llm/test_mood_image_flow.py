@@ -29,17 +29,14 @@ async def test_mood_image_flow(monkeypatch):
 
     monkeypatch.setattr(Message, "answer_photo", fake_answer_photo)
 
-    #  Bot & Dispatcher
     storage = MemoryStorage()
     bot = Bot(token="123:ABC", default=DefaultBotProperties(parse_mode="HTML"))
     dp = Dispatcher(storage=storage)
     dp.include_router(router)
 
-    #  Ֆեյք user/chat
     user = User(id=123, is_bot=False, first_name="Մոչի", username="mochi")
     chat = Chat(id=456, type="private")
 
-    #  Message
     message = Message(
         message_id=1,
         from_user=user,
@@ -51,5 +48,4 @@ async def test_mood_image_flow(monkeypatch):
 
     update = Update(update_id=99999, message=message)
 
-    # 📡 Feed update properly
     await dp.feed_update(bot=bot, update=update)

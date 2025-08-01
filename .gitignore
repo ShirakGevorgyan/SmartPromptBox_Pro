@@ -17,3 +17,9 @@ db/
 init_db_*.py
 
 app/data/logs/
+
+.pytest_cache
+
+images
+
+**/__init__.py

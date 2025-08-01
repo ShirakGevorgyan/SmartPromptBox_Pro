@@ -17,7 +17,6 @@ async def test_gpt_memory_chat_e2e():
     user = User(id=123456, is_bot=False, first_name="Tester")
     chat = Chat(id=123456, type="private")
 
-    # Մոկ առաջին հաղորդագրությունը՝ "⭐️ Խոսիր ինձ հետ"
     start_msg = Message(
         message_id=1,
         from_user=user,
@@ -27,7 +26,7 @@ async def test_gpt_memory_chat_e2e():
     )
     start_update = Update(update_id=1001, message=start_msg)
 
-    # Մոկ GPT հարցը՝ "Ո՞վ ես դու"
+
     gpt_msg = Message(
         message_id=2,
         from_user=user,
@@ -55,10 +54,9 @@ async def test_gpt_memory_chat_e2e():
         patch("app.data.db_session_tracker.get_or_create_user_session", return_value=None),
         patch("app.data.db_session_tracker.update_session_info", return_value=None)
     ):
-        # Սկսում ենք GPT զրույցը
+
         await dp.feed_update(bot=bot, update=start_update)
 
-        # Ուղարկում ենք GPT հարց
         await dp.feed_update(bot=bot, update=gpt_update)
 
     print("\n📤 Captured messages:")

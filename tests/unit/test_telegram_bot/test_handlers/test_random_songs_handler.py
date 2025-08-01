@@ -7,11 +7,9 @@ from app.telegram_bot.handlers import random_songs_handler
 
 @pytest.mark.asyncio
 async def test_random_song_handler_success():
-    # Create mock Message
+    
     mock_message = AsyncMock()
     mock_message.answer = AsyncMock()
-
-    # Create mock FSM state
     mock_state = AsyncMock(spec=FSMContext)
 
     mock_songs = [

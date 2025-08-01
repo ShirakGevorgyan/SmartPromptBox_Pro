@@ -56,7 +56,7 @@ async def test_handle_prompt_success(mock_remove, mock_exists, mock_generate):
 
     await img_handler.handle_prompt(message, state)
 
-    assert "__state__" not in state._data  # state must be cleared
+    assert "__state__" not in state._data  
 
 
 @pytest.mark.asyncio
@@ -68,7 +68,7 @@ async def test_handle_prompt_failure(mock_exists, mock_generate):
 
     await img_handler.handle_prompt(message, state)
 
-    assert "__state__" not in state._data  # state must be cleared even on failure
+    assert "__state__" not in state._data 
 
 
 @pytest.mark.asyncio

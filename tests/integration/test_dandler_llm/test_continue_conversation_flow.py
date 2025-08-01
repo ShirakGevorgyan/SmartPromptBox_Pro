@@ -26,7 +26,7 @@ async def test_continue_conversation_flow(mock_retry_async):
     )
     mock_retry_async.return_value = mock_response
 
-    # 🧠 FSM setup
+
     storage = MemoryStorage()
     state = FSMContext(storage=storage, key=("TelegramBot", 123456))
 
@@ -50,7 +50,7 @@ async def test_continue_conversation_flow(mock_retry_async):
     assert data["chat_history"][-1]["role"] == "assistant"
     assert "Սա մոկված պատասխան է" in data["chat_history"][-1]["content"]
 
-    # ✅ Ստուգում ենք բազայում բոլոր row-երը (history-ն ըստ UserMemory)
+
     db = SessionLocal()
     rows = db.query(UserMemory).filter_by(user_id="123456").all()
     assert len(rows) >= 2

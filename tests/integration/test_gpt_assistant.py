@@ -6,12 +6,12 @@ from app.data.models.base import Base
 from app.llm.assistant import gpt_assistant_conversation, get_or_create_user, detect_user_mood, extract_names
 from app.utils.summarizer import summarize_history
 
-# Ստեղծում ենք In-Memory SQLite engine
+
 TEST_DB_URL = "sqlite:///:memory:"
 engine = create_engine(TEST_DB_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
-# Pytest fixture՝ սեսիայի համար
+
 @pytest.fixture(scope="function")
 def db_session():
     Base.metadata.create_all(bind=engine)
@@ -75,7 +75,6 @@ async def test_gpt_assistant_conversation(db_session):
         with patch("app.llm.assistant.SessionLocal", return_value=db_session):
             result = await gpt_assistant_conversation(user_id, message)
             assert "Բարև" in result
-
 
 
 

@@ -30,4 +30,4 @@ async def test_retry_waits_between_attempts(mock_sleep):
     mock_fn = AsyncMock(side_effect=[Exception(), Exception(), "Done"])
     result = await retry_async(mock_fn, retries=3, base_delay=0.1)
     assert result == "Done"
-    assert mock_sleep.call_count == 2  # 2 delays before 3rd success
+    assert mock_sleep.call_count == 2 

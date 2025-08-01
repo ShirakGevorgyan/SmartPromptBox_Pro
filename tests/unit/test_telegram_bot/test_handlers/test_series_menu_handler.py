@@ -1,5 +1,3 @@
-# tests/unit/test_telegram_bot/test_handlers/test_series_menu_handler.py
-
 import pytest
 import warnings
 from unittest.mock import AsyncMock, patch

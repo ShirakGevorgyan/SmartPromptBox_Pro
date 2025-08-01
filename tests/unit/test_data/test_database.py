@@ -9,13 +9,12 @@ TEST_DATABASE_URL = f"sqlite:///{TEST_DB_PATH}"
 
 @pytest.fixture(scope="module")
 def test_engine():
-    # Ստեղծում ենք թեստային engine
+
     engine = database.create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
     yield engine
     engine.dispose()
 
-    # Ջնջում ենք ֆայլը թեստից հետո
     if os.path.exists(TEST_DB_PATH):
         os.remove(TEST_DB_PATH)
 

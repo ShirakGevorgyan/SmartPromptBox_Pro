@@ -2,7 +2,6 @@ from unittest.mock import patch, MagicMock
 from app.llm import movie_picker
 
 
-# 📌 Մոկ վերլուծված GPT պատասխան՝ որպես string
 MOCK_MOVIE_TEXT = """
 🎥 Վերնագիր` Interstellar (2014)  
 🎭 Ժանրը՝ Գիտաֆանտաստիկա  
@@ -14,7 +13,6 @@ MOCK_MOVIE_TEXT = """
 🎞️ Դիտելու հղում՝ [IMDB](https://imdb.com)
 """
 
-# ✅ Patch both GPT call and replace_plot_with_refined
 @patch("app.llm.movie_picker.replace_plot_with_refined")
 @patch("app.llm.movie_picker.client")
 def test_get_random_movie_llm(mock_client, mock_replace_plot):

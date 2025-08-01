@@ -5,7 +5,6 @@ from app.data.models.base import Base
 from app.data.memory_service import load_history, save_history
 
 
-# 🔧 Test-ի engine ու session
 @pytest.fixture(scope="function")
 def test_session():
     engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
@@ -25,10 +24,8 @@ def test_save_and_load_history(test_session):
         {"role": "assistant", "content": "Բարև Մոչի ջան"},
     ]
 
-    # 💾 Պահպանում ենք պատմությունը
     save_history(test_session, user_id, test_history)
 
-    # 📤 Բեռնում ենք պատմությունը
     loaded_history = load_history(test_session, user_id)
 
     assert loaded_history == test_history

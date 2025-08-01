@@ -1,5 +1,3 @@
-# app/utils/song_llm.py
-
 import os
 import ast
 from openai import OpenAI
@@ -8,7 +6,6 @@ from app.llm.mood_inferencer import ask_gpt, clean_gpt_code_block, parse_fallbac
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# 🔹 1. Ըստ ոճի
 def generate_songs_by_genre(genre: str) -> List[Dict[str, str]]:
     system_prompt = (
         "Դու երաժշտական օգնական ես։ "
@@ -38,7 +35,6 @@ def generate_songs_by_genre(genre: str) -> List[Dict[str, str]]:
         return parse_fallback_list(response)
 
 
-# 🔹 2. Ըստ նկարագրության
 def generate_songs_by_description(description: str) -> List[Dict[str, str]]:
     system_prompt = (
         "Դու երաժշտական օգնական ես։ "
@@ -68,7 +64,6 @@ def generate_songs_by_description(description: str) -> List[Dict[str, str]]:
         return parse_fallback_list(response)
 
 
-# 🔹 3. Ըստ արտիստի
 def generate_top_songs_by_artist(artist: str) -> List[Dict[str, str]]:
     system_prompt = (
         "Դու երաժշտական օգնական ես։ "

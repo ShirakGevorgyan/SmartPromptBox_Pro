@@ -15,13 +15,11 @@ FAKE_TEXT = """
 📊 IMDb գնահատական՝ 8.2
 """
 
-# ✅ Test extract_plot_only
 def test_extract_plot_only():
     plot = extract_plot_only(FAKE_TEXT)
     assert "փոխել աշխարհը" in plot
     assert "ժանրը" not in plot
 
-# ✅ Test clean_garbage_from_plot
 def test_clean_garbage_from_plot_removes_garbage():
     dirty = "Սա նորմալ ✅✅ տեքստ է 👻 բայց ունի ###$% technical <> <> նշաններ..."
     cleaned = clean_garbage_from_plot(dirty)
@@ -30,11 +28,9 @@ def test_clean_garbage_from_plot_removes_garbage():
     assert "<>" not in cleaned
     assert "տեքստ" in cleaned
 
-# ✅ Test refine_plot_description with mocked GPT client
 def test_refine_plot_description_mocked():
     raw_plot = "Սա սյուժե է, որը պետք է բարելավվի։"
 
-    # Mock GPT client
     fake_client = MagicMock()
     fake_client.chat.completions.create.return_value.choices = [
         MagicMock(message=MagicMock(content="Սա բարելավված սյուժեն է։"))
@@ -43,7 +39,6 @@ def test_refine_plot_description_mocked():
     result = refine_plot_description(raw_plot, fake_client)
     assert "բարելավված" in result
 
-# ✅ Test replace_plot_with_refined using fake client and full text
 def test_replace_plot_with_refined():
     full_text = """
 🎥 Վերնագիր

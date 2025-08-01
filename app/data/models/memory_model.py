@@ -8,10 +8,9 @@ class UserMemory(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(String, index=True)
 
-    role = Column(String)  # 'user' կամ 'assistant'
+    role = Column(String)
     content = Column(Text)
 
-    # ✅ Ավելացված դաշտեր
     user_name = Column(String, nullable=True)
     bot_name = Column(String, nullable=True)
     last_mood = Column(String, nullable=True)

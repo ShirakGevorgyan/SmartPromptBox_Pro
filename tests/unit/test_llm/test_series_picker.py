@@ -1,7 +1,6 @@
 from unittest.mock import patch, MagicMock
 from app.llm import series_picker
 
-# 📌 Մոկված պատասխանը՝ սերիալի բովանդակությամբ
 MOCK_SERIES_TEXT = """
 🎥 Վերնագիր՝ Breaking Bad (2008)  
 🎭 Ժանրը՝ Դրամա  
@@ -13,7 +12,6 @@ MOCK_SERIES_TEXT = """
 🎞️ Դիտելու հղում՝ [IMDB](https://imdb.com)
 """
 
-# ✅ Test 1: get_random_series_llm
 @patch("app.llm.series_picker.replace_plot_with_refined")
 @patch("app.llm.series_picker.client")
 def test_get_random_series_llm(mock_client, mock_replace_plot):
@@ -27,7 +25,6 @@ def test_get_random_series_llm(mock_client, mock_replace_plot):
     assert "🎭 Ժանրը" in result
 
 
-# ✅ Test 2: suggest_series_by_description_llm
 @patch("app.llm.series_picker.replace_plot_with_refined")
 @patch("app.llm.series_picker.client")
 def test_suggest_series_by_description_llm(mock_client, mock_replace_plot):
@@ -40,7 +37,6 @@ def test_suggest_series_by_description_llm(mock_client, mock_replace_plot):
     assert "Bryan Cranston" in result
 
 
-# ✅ Test 3: get_series_details_by_name_llm
 @patch("app.llm.series_picker.replace_plot_with_refined")
 @patch("app.llm.series_picker.client")
 def test_get_series_details_by_name_llm(mock_client, mock_replace_plot):
@@ -53,7 +49,6 @@ def test_get_series_details_by_name_llm(mock_client, mock_replace_plot):
     assert "Vince Gilligan" in result
 
 
-# ✅ Test 4: get_series_by_genre_llm
 @patch("app.llm.series_picker.replace_plot_with_refined")
 @patch("app.llm.series_picker.client")
 def test_get_series_by_genre_llm(mock_client, mock_replace_plot):
@@ -66,7 +61,6 @@ def test_get_series_by_genre_llm(mock_client, mock_replace_plot):
     assert "🎞️ Դիտելու հղում" in result
 
 
-# ✅ Test 5: get_top_10_series_llm
 @patch("app.llm.series_picker.replace_plot_with_refined")
 @patch("app.llm.series_picker.client")
 def test_get_top_10_series_llm(mock_client, mock_replace_plot):

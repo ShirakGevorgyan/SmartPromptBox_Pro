@@ -7,7 +7,6 @@ from app.llm.text_utils import replace_plot_with_refined
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Հավելյալ fallback հղումներ
 DEFAULT_TRAILER = "https://youtube.com"
 DEFAULT_WATCH = "https://www.imdb.com"
 
@@ -67,7 +66,6 @@ def get_random_movie_llm() -> str:
     return replace_plot_with_refined(text_with_links, client)
 
 
-# 🎞 Ըստ նկարագրության
 def suggest_movies_by_description_llm(description: str) -> str:
     prompt = f"""
 Օգտատերը ցանկանում է ֆիլմ առաջարկ՝ ըստ նկարագրության․
@@ -92,8 +90,6 @@ def suggest_movies_by_description_llm(description: str) -> str:
     text_with_links = add_default_links_if_missing(raw_output)
     return replace_plot_with_refined(text_with_links, client)
 
-
-# 🔍 Ըստ անունի
 def get_movie_details_by_name_llm(movie_name: str) -> str:
     prompt = f"""
 Օգտատերը գրում է ֆիլմի անունը՝ «{movie_name}»
@@ -151,7 +147,6 @@ def get_movies_by_genre_llm(genre: str) -> str:
     return replace_plot_with_refined(text_with_links, client)
 
 
-# 🔥 Լավագույն 10 ֆիլմ (անկախ ժանրից)
 def get_top_10_movies_llm() -> str:
     prompt = """
 Առաջարկիր 10 ֆիլմ, որոնք համարվում են ժամանակակից կինոյի լավագույններից։  
