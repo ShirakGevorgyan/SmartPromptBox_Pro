@@ -108,13 +108,18 @@ def get_series_details_by_name_llm(series_name: str) -> str:
 
 Մի գրիր բացատրություն, մի ավելացրու emojis (արդեն կան)։
 """
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.6
-    )
-    raw_output = response.choices[0].message.content
-    return replace_plot_with_refined(raw_output, client)
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.6
+        )
+        raw_output = response.choices[0].message.content
+        return replace_plot_with_refined(raw_output, client)
+
+    except Exception:
+        return f"Հնարավոր չէ ստանալ տվյալներ «{series_name}» սերիալի մասին այս պահին։"
 
 
 

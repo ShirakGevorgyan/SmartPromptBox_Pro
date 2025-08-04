@@ -1,11 +1,9 @@
-.en# Ignore Python bytecode cache directories
+.en
 __pycache__/
 *.py[cod]
 
-# Ignore environment files
 .env
 
-# Ignore other common unwanted files
 *.log
 
 chromedriver-linux64.zip
