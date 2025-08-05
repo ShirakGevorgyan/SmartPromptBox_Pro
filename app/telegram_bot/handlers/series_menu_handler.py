@@ -20,6 +20,7 @@ from app.llm.series_picker import (
     get_series_by_genre_llm
 )
 
+
 router = Router()
 
 

@@ -11,6 +11,7 @@ from app.telegram_bot.handlers.mood_handler import mood_generate
 async def test_mood_generate_songs(mock_send_song_buttons, mock_generate_songs_for_mood):
     mock_message = MagicMock(spec=Message)
     mock_message.text = "🎵 5 երգ"
+    mock_message.answer = AsyncMock()  
     mock_state = AsyncMock(spec=FSMContext)
     mock_state.get_data = AsyncMock(return_value={"mood": "😢 Տխուր եմ"})
 
@@ -35,6 +36,7 @@ async def test_mood_generate_songs(mock_send_song_buttons, mock_generate_songs_f
 async def test_mood_generate_movies(mock_send_movies_as_buttons, mock_generate_movies_for_mood):
     mock_message = MagicMock(spec=Message)
     mock_message.text = "🎬 5 ֆիլմ"
+    mock_message.answer = AsyncMock()  
     mock_state = AsyncMock(spec=FSMContext)
     mock_state.get_data = AsyncMock(return_value={"mood": "🤩 Ուրախ եմ"})
 
@@ -59,6 +61,7 @@ async def test_mood_generate_movies(mock_send_movies_as_buttons, mock_generate_m
 async def test_mood_generate_quotes(mock_generate_quotes_for_mood):
     mock_message = AsyncMock(spec=Message)
     mock_message.text = "💬 5 մեջբերում"
+    mock_message.answer = AsyncMock()  
     mock_state = AsyncMock(spec=FSMContext)
     mock_state.get_data = AsyncMock(return_value={"mood": "😎 Մոտիվացված եմ"})
 
@@ -70,12 +73,16 @@ async def test_mood_generate_quotes(mock_generate_quotes_for_mood):
     mock_message.answer.assert_any_call("1. Quote 1\n2. Quote 2")
 
 
+
 @pytest.mark.asyncio
 @patch("app.telegram_bot.handlers.mood_handler.generate_images_from_prompts")
 @patch("app.telegram_bot.handlers.mood_handler.generate_image_prompts_from_mood")
 async def test_mood_generate_images(mock_generate_image_prompts_from_mood, mock_generate_images_from_prompts):
     mock_message = AsyncMock(spec=Message)
     mock_message.text = "🖼 2 նկարների նկարագրություն"
+    mock_message.answer = AsyncMock()  
+    mock_message.answer_photo = AsyncMock()  
+    
     mock_state = AsyncMock(spec=FSMContext)
     mock_state.get_data = AsyncMock(return_value={"mood": "😐 Ուղղակի լավ եմ"})
 

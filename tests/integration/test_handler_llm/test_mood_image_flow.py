@@ -11,7 +11,7 @@ from app.llm import image_generator
 
 @pytest.mark.asyncio
 async def test_mood_image_flow(monkeypatch):
-    # 🔁 Mock տվյալներ
+
     mock_prompts = ["Արևածագ լճի վրա", "Աղջիկը մենակ նստած է սրճարանում"]
     mock_images = [(mock_prompts[0], "https://test.image/1"), (mock_prompts[1], "https://test.image/2")]
 

@@ -4,6 +4,8 @@ from sqlalchemy import inspect
 from app.data import database
 from app.data.models.base import Base
 
+os.makedirs("db", exist_ok=True)
+
 TEST_DB_PATH = "db/test_memory.db"
 TEST_DATABASE_URL = f"sqlite:///{TEST_DB_PATH}"
 

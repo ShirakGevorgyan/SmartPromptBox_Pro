@@ -11,7 +11,6 @@ from app.data.database import SessionLocal
 router = Router()
 
 
-
 @router.message(F.text == "⭐️ Խոսիր ինձ հետ")
 async def start_conversation(message: Message, state: FSMContext):
     print("✅ Սկսեց GPT զրույցը")

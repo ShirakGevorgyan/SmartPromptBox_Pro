@@ -45,7 +45,8 @@ async def test_img_generation_e2e(tmp_path):
     with (
         patch.object(Message, "answer", new=mock_answer),
         patch.object(Message, "answer_photo", new=mock_answer_photo),
-        patch("app.llm.img_generator.generate_image", return_value=str(fake_img_path)),
+        # ✅ Ահա ճիշտ patch-ը՝ img_handler-ի մեջ է օգտագործվում
+        patch("app.telegram_bot.handlers.img_handler.generate_image", return_value=str(fake_img_path)),
     ):
         start_msg = Message(
             message_id=1,
