@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd "$(dirname "$0")"
+
 TEST_DIR="./"
 LOG_DIR="./logs/test_check_logs"
 SUMMARY_FILE="./logs/test_runs_summary.log"
@@ -49,7 +51,7 @@ echo "==========================================" >> "$LOG_FILE"
 echo "✔️ Ընդամենը թեստեր: $total" >> "$LOG_FILE"
 echo "✅ Հաջողված: $passed" >> "$LOG_FILE"
 echo "❌ Չհաջողված: $failed" >> "$LOG_FILE"
-echo "🕒 Ընդհանուր տևողություն: ${total_duration} վայրկյան" >> "$LOG_FILE"
+echo "🕒 Ընդհանուր տևողություն: ${total_duration}s վայրկյան" >> "$LOG_FILE"
 echo "" >> "$LOG_FILE"
 
 if [ $failed -gt 0 ]; then
