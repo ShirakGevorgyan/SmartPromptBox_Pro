@@ -25,10 +25,10 @@ jobs:
         pip install -r requirements.txt
 
     - name: 🔧 Make test script executable
-      run: chmod +x app/test/run_all_tests.sh
+      run: chmod +x tests/run_all_tests.sh
 
     - name: 🧪 Run all tests
-      run: ./app/test/run_all_tests.sh
+      run: ./tests/run_all_tests.sh
 
     - name: 📁 Upload test logs (optional but pro)
       if: always()
