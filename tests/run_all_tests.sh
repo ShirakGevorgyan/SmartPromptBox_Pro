@@ -30,7 +30,9 @@ for file in $test_files; do
 
     start_test=$(date +%s)
 
-    if PYTHONPATH=. pytest "$file" --maxfail=1 --disable-warnings -q > /dev/null 2>&1; then
+    if PYTHONPATH="$(pwd)/.." pytest "$file" --maxfail=1 --disable-warnings -q; then
+
+    # if PYTHONPATH=. pytest "$file" --maxfail=1 --disable-warnings -q > /dev/null 2>&1; then
         result="✅ OK"
         ((passed+=1))
     else
