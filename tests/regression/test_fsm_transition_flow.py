@@ -2,6 +2,7 @@ import pytest
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.context import FSMContext
+from aiogram.client.default import DefaultBotProperties
 from app.telegram_bot.handlers.series_menu_handler import router, SeriesStates
 
 
@@ -9,7 +10,10 @@ from app.telegram_bot.handlers.series_menu_handler import router, SeriesStates
 async def test_series_description_state_transition():
 
     storage = MemoryStorage()
-    bot = Bot(token="123:ABC", parse_mode=None)
+    bot = Bot(
+    token="123456:TESTTOKEN",
+    default=DefaultBotProperties(parse_mode="HTML")
+)
     dp = Dispatcher(storage=storage)
     dp.include_router(router)
 

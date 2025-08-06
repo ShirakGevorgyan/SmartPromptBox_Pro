@@ -30,7 +30,10 @@ async def test_mood_image_flow(monkeypatch):
     monkeypatch.setattr(Message, "answer_photo", fake_answer_photo)
 
     storage = MemoryStorage()
-    bot = Bot(token="123:ABC", default=DefaultBotProperties(parse_mode="HTML"))
+    bot = Bot(
+    token="123456:TESTTOKEN",
+    default=DefaultBotProperties(parse_mode="HTML")
+)
     dp = Dispatcher(storage=storage)
     dp.include_router(router)
 

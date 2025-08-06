@@ -4,12 +4,15 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import Message, User, Chat, Update
 from datetime import datetime
-
+from aiogram.client.default import DefaultBotProperties
 from app.telegram_bot.handlers.random_songs_handler import router
 
 @pytest.mark.asyncio
 async def test_song_random_flow_e2e():
-    bot = Bot(token="123456:TESTTOKEN", parse_mode="HTML")
+    bot = Bot(
+    token="123456:TESTTOKEN",
+    default=DefaultBotProperties(parse_mode="HTML")
+)
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(router)
 

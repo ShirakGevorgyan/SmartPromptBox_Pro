@@ -5,7 +5,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import Message, User, Chat, Update
 from datetime import datetime
 import copy
-
+from aiogram.client.default import DefaultBotProperties
 
 from app.telegram_bot.handlers.series_menu_handler import (
     router as series_router_original,
@@ -26,7 +26,10 @@ mock_series_result = """
 
 def create_bot_and_dispatcher():
     series_router = copy.deepcopy(series_router_original)
-    bot = Bot(token="123456:TESTTOKEN", parse_mode="HTML")
+    bot = Bot(
+    token="123456:TESTTOKEN",
+    default=DefaultBotProperties(parse_mode="HTML")
+)
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(series_router)
     return bot, dp
