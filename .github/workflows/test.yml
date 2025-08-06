@@ -52,7 +52,7 @@ jobs:
     - name: 📤 Notify on Success
       if: success()
       run: |
-        curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
+        curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}/sendMessage \
         -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
         -d text="🟢 Թեստերը հաջողությամբ անցան ✅\n🔗 Տես logs-ը GitHub Actions-ում՝\nhttps://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
@@ -60,6 +60,6 @@ jobs:
     - name: ❌ Notify on Failure
       if: failure()
       run: |
-        curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
+        curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}/sendMessage \
         -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
         -d text="❌ Որոշ թեստեր FAILED են:\n🔍 Տես logs-ը GitHub Actions-ում՝\nhttps://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
