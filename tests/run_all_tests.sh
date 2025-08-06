@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir -p logs/test_check_logs
+
 cd "$(dirname "$0")"
 
 TEST_DIR="./"
@@ -65,6 +67,15 @@ fi
 echo "🟢 Լրիվ ավարտվեց։ Արդյունքները՝ $LOG_FILE"
 
 echo "$TIMESTAMP | 🧪 Թեստեր՝ $total | ✅ $passed | ❌ $failed | 🕒 ${total_duration}s | 📄 $LOG_FILE" >> "$SUMMARY_FILE"
+
+if [ ! -f "$LOG_FILE" ]; then
+    echo "❗ Չկան թեստեր կամ լոգեր, սա placeholder ֆայլ է GitHub-ի համար" > "$LOG_FILE"
+fi
+
+if [ ! -f "$FAIL_FILE" ]; then
+    touch "$FAIL_FILE"
+fi
+
 
 if [ $failed -gt 0 ]; then
     exit 1
