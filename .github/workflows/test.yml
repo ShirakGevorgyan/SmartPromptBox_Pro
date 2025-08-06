@@ -52,13 +52,13 @@ jobs:
     - name: ✅ Notify on Success
       if: success()
       run: |
-        curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
+        curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}/sendMessage \
         -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
         -d text="🟢 Հաջողություն \n✅ Բոլոր թեստերը անցել են հաջողությամբ:\n🔍 Ճիշտ գործարկում GitHub Actions-ում։"
 
     - name: ❌ Notify on Failure
       if: failure()
       run: |
-        curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
+        curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}/sendMessage \
         -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
         -d text="🔴 Սխալ \n🚨 Թեստերից որոշները FAILED են:\n📎 Նայիր լոգերին GitHub-ում՝ վերականգնելու համար։"
