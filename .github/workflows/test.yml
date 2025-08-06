@@ -49,17 +49,34 @@ jobs:
         path: tests/logs/test_check_logs
         if-no-files-found: ignore
 
-    - name: 📤 Notify on Success
+    - name: 📤 Notify on Success with Button
       if: success()
       run: |
         curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}/sendMessage \
         -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
-        -d text="🟢 Թեստերը հաջողությամբ անցան ✅\n🔗 Տես logs-ը GitHub Actions-ում՝\nhttps://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        -d text="🟢 Թեստերը հաջողությամբ անցան ✅\n🔗 Տես logs-ը GitHub Actions-ում՝" \
+        -d parse_mode="HTML" \
+        -d reply_markup='{
+              "inline_keyboard": [[
+                  {
+                      "text": "📄 Բացել Logs-ը",
+                      "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+              ]]
+            }'
 
-
-    - name: ❌ Notify on Failure
+    - name: ❌ Notify on Failure with Button
       if: failure()
       run: |
         curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}/sendMessage \
         -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
-        -d text="❌ Որոշ թեստեր FAILED են:\n🔍 Տես logs-ը GitHub Actions-ում՝\nhttps://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        -d text="🚨 Թեստերից որոշները FAILED են ❌\n🔎 Տես logs-ը GitHub Actions-ում՝" \
+        -d parse_mode="HTML" \
+        -d reply_markup='{
+              "inline_keyboard": [[
+                  {
+                      "text": "📄 Բացել Logs-ը",
+                      "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+              ]]
+            }'
