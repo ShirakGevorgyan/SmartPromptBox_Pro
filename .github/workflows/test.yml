@@ -49,16 +49,17 @@ jobs:
         path: tests/logs/test_check_logs
         if-no-files-found: ignore
 
-    - name: ✅ Notify on Success
+    - name: 📤 Notify on Success
       if: success()
       run: |
-        curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}/sendMessage \
+        curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
         -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
-        -d text="🟢 Հաջողություն \n✅ Բոլոր թեստերը անցել են հաջողությամբ:\n🔍 Ճիշտ գործարկում GitHub Actions-ում։"
+        -d text="🟢 Թեստերը հաջողությամբ անցան ✅\n🔗 Տես logs-ը GitHub Actions-ում՝\nhttps://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
 
     - name: ❌ Notify on Failure
       if: failure()
       run: |
-        curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}/sendMessage \
+        curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
         -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
-        -d text="🔴 Սխալ \n🚨 Թեստերից որոշները FAILED են:\n📎 Նայիր լոգերին GitHub-ում՝ վերականգնելու համար։"
+        -d text="❌ Որոշ թեստեր FAILED են:\n🔍 Տես logs-ը GitHub Actions-ում՝\nhttps://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
