@@ -238,4 +238,6 @@ jobs:
 
       - name: Syntax check
         working-directory: devops/ansible
+        env:
+          ANSIBLE_ROLES_PATH: roles
         run: ansible-playbook -i inventory/hosts.ini --syntax-check playbooks/deploy.yml
