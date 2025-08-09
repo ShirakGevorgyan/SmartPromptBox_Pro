@@ -1,0 +1,12 @@
+# devops/compose/docker-compose.dev.yml
+
+services:
+  smartbox-app:
+    build:
+      context: ../../
+      dockerfile: devops/docker/app/Dockerfile
+    container_name: smartbox-app
+    env_file: ../../.env
+    volumes:
+      - ../../:/app
+    restart: unless-stopped

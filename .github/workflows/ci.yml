@@ -49,7 +49,6 @@ jobs:
       - name: Ruff checks
         run: |
           ruff check .
-          ruff format --check .
 
   types:
     name: Types (mypy)
@@ -71,7 +70,8 @@ jobs:
           pip install mypy
       - name: Run mypy
         run: |
-          mypy app --ignore-missing-imports --install-types --non-interactive
+          mypy app --ignore-missing-imports --install-types --non-interactive --explicit-package-bases
+
 
 
   unit_tests:

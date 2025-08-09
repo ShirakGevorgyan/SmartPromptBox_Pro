@@ -20,4 +20,8 @@ app/data/logs/
 
 images
 
-**/__init__.py
+# **/__init__.py
+
+*.sqlite
+
+*.db
