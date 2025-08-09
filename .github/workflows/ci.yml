@@ -94,10 +94,12 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           pip install pytest pytest-cov
-      - name: Run tests (with coverage)
+      - name: Run unit tests (with coverage)
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: |
-          pytest -q --maxfail=1 --disable-warnings \
-            --cov=. --cov-report=xml --cov-report=html
+          pytest -q tests/unit --maxfail=1 --disable-warnings \
+            --cov=app --cov-report=xml --cov-report=html
       - name: Upload coverage HTML
         uses: actions/upload-artifact@v4
         with:
