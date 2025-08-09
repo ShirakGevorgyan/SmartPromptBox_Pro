@@ -1,5 +1,4 @@
 ---
-# Demo role — ոչ մի իրական deploy CI-ում
 - name: Show intended deploy parameters
   debug:
     msg:

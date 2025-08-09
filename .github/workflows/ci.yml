@@ -207,7 +207,6 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # Format in-place (ոչ թե -check)
       - name: Terraform fmt (auto)
         run: terraform fmt -recursive
 
@@ -229,15 +228,13 @@ jobs:
         run: pipx install ansible-core
 
       - name: 'Sanity: list ansible tree'
-        working-directory: devops/ansible
+        working-directory: devops/ansible/inventory
         run: |
-          set -x
           pwd
           ls -la
           ls -la playbooks || true
-          ls -la inventory || true
-          ls -la roles/app/tasks || true
-          
+          ls -la ../roles || true
+
       - name: Syntax check
-        working-directory: devops/ansible
-        run: ansible-playbook -i inventory/hosts.ini --syntax-check playbooks/deploy.yml
+        working-directory: devops/ansible/inventory
+        run: ansible-playbook -i hosts.ini --syntax-check playbooks/deploy.yml
