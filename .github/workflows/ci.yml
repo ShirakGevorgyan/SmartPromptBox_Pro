@@ -70,7 +70,7 @@ jobs:
           pip install mypy
       - name: Run mypy
         run: |
-          mypy app --ignore-missing-imports --install-types --non-interactive --explicit-package-bases
+          mypy --config-file mypy.ini
 
 
 
