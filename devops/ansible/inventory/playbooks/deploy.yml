@@ -1,0 +1,6 @@
+---
+- name: Demo deploy on localhost (dry-run friendly)
+  hosts: local
+  gather_facts: false
+  roles:
+    - app

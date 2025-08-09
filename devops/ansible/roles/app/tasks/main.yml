@@ -1,0 +1,7 @@
+---
+# Demo role — ոչ մի իրական deploy CI-ում
+- name: Show intended deploy parameters
+  debug:
+    msg:
+      - "Would run container: smartpromptbox_pro:prod"
+      - "Env: OPENAI_API_KEY/TELEGRAM_BOT_TOKEN provided via secrets/.env"
