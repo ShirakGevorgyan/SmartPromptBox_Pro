@@ -97,9 +97,12 @@ jobs:
       - name: Run unit tests (with coverage)
         env:
           PYTHONPATH: ${{ github.workspace }}
+          OPENAI_API_KEY: "test-key"
+          TELEGRAM_BOT_TOKEN: "test-token"
         run: |
           pytest -q tests/unit --maxfail=1 --disable-warnings \
             --cov=app --cov-report=xml --cov-report=html
+
       - name: Upload coverage HTML
         uses: actions/upload-artifact@v4
         with:
