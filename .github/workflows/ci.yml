@@ -155,6 +155,7 @@ jobs:
           context: .
           file: devops/docker/app/Dockerfile.dev
           push: false
+          load: true   
           tags: smartpromptbox_pro:dev
 
       - name: Build prod image
@@ -163,7 +164,9 @@ jobs:
           context: .
           file: devops/docker/app/Dockerfile
           push: false
+          load: true         
           tags: smartpromptbox_pro:prod
+
 
   compose_smoke:
     name: Compose Smoke (config + import check)
