@@ -172,6 +172,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Create dummy .env for compose
+        run: |
+          cat > .env <<'EOF'
+          OPENAI_API_KEY=test-key
+          TELEGRAM_BOT_TOKEN=test-token
+          EOF
+
       - name: Validate compose (dev)
         run: docker compose -f devops/compose/docker-compose.dev.yml config
 
