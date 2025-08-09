@@ -1,10 +1,33 @@
+# Python/venv/cache
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 *.pyd
-.devcontainer/
-pytest_cache/
-.git/
-.vscode/
-*.db
+*.so
+venv/
 .env
+*.env
+
+# Tests outputs
+.pytest_cache/
+coverage/
+htmlcov/
+*.log
+
+# Local DB & images
+db/
+*.sqlite
+*.db
+images/
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
