@@ -7,10 +7,19 @@ on:
 jobs:
   up:
     name: Up via Docker Compose (self-host)
-    runs-on: self-hosted   # 👈 runner-ը պիտի լինի քո host-ում
+    runs-on: [self-hosted, linux, x64]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: "Preflight: show env"
+        run: |
+          whoami
+          pwd
+          uname -a
+          groups
+          docker version || true
+          docker compose version || docker-compose --version || true
 
       - name: Write .env (if not present)
         run: |
@@ -23,7 +32,16 @@ jobs:
 
       - name: Compose up (prod)
         run: |
-          docker compose -f devops/compose/docker-compose.prod.yml up -d --build
+          # choose docker compose v2 or legacy docker-compose
+          if docker compose version >/dev/null 2>&1; then
+            DC="docker compose"
+          elif command -v docker-compose >/dev/null 2>&1; then
+            DC="docker-compose"
+          else
+            echo "Docker Compose not installed. Install docker-compose-plugin or docker-compose"; exit 1
+          fi
+
+          $DC -f devops/compose/docker-compose.prod.yml up -d --build
 
       - name: Show containers
         run: docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"

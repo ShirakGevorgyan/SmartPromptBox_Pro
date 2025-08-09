@@ -25,3 +25,5 @@ images
 *.sqlite
 
 *.db
+
+actions-runner/
