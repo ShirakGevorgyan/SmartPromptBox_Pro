@@ -70,7 +70,8 @@ jobs:
           pip install mypy
       - name: Run mypy
         run: |
-          mypy --config-file mypy.ini app
+          mypy --config-file mypy.ini --explicit-package-bases app
+
 
 
 
