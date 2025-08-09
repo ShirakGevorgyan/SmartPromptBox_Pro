@@ -188,5 +188,10 @@ jobs:
       - name: Validate compose (prod)
         run: docker compose -f devops/compose/docker-compose.prod.yml config
 
-      - name: Run import check in dev image
-        run: docker run --rm smartpromptbox_pro:dev python -c "import app; print('import ok')"
+      - name: Import check via compose run (dev)
+        run: docker compose -f devops/compose/docker-compose.dev.yml run --rm smartbox-app python -c "import app; print('ok')"
+
+      - name: Cleanup
+        if: always()
+        run: docker compose -f devops/compose/docker-compose.dev.yml down --remove-orphans || true
+
