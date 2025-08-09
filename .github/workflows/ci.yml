@@ -217,17 +217,27 @@ jobs:
       - name: Terraform validate
         run: terraform validate
 
-
   ansible_syntax:
     name: Ansible Syntax Check
     runs-on: ubuntu-latest
     needs: [lint]
-    defaults:
-      run:
-        working-directory: devops/ansible
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Install Ansible (minimal)
         run: pipx install ansible-core
+
+      - name: 'Sanity: list ansible tree'
+        working-directory: devops/ansible
+        run: |
+          set -x
+          pwd
+          ls -la
+          ls -la playbooks || true
+          ls -la inventory || true
+          ls -la roles/app/tasks || true
+          
       - name: Syntax check
+        working-directory: devops/ansible
         run: ansible-playbook -i inventory/hosts.ini --syntax-check playbooks/deploy.yml
