@@ -70,7 +70,7 @@ jobs:
           pip install mypy
       - name: Run mypy
         run: |
-          mypy --config-file mypy.ini
+          mypy --config-file mypy.ini app
 
 
 
