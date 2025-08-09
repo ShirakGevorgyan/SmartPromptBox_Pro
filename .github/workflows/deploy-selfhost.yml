@@ -1,0 +1,29 @@
+name: CD (self-hosted auto)
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  up:
+    name: Up via Docker Compose (self-host)
+    runs-on: self-hosted   # 👈 runner-ը պիտի լինի քո host-ում
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Write .env (if not present)
+        run: |
+          if [ ! -f .env ]; then
+            cat > .env << 'EOF'
+            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+            TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
+            EOF
+          fi
+
+      - name: Compose up (prod)
+        run: |
+          docker compose -f devops/compose/docker-compose.prod.yml up -d --build
+
+      - name: Show containers
+        run: docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"

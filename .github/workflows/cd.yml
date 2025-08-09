@@ -1,0 +1,60 @@
+name: CD (remote server via SSH)
+
+on:
+  workflow_dispatch:
+    inputs:
+      host:
+        description: "Target host (IP or DNS)"
+        required: true
+      user:
+        description: "SSH user"
+        required: true
+      check_mode:
+        description: "Run Ansible in --check (dry-run)?"
+        required: true
+        default: "true"
+        type: choice
+        options: ["true", "false"]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Ansible deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: pipx install ansible-core
+
+      - name: SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add host to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "${{ github.event.inputs.host }}" >> ~/.ssh/known_hosts
+
+      - name: Runtime inventory
+        run: |
+          mkdir -p devops/ansible/runtime
+          cat > devops/ansible/runtime/hosts.ini <<EOF
+          [target]
+          ${{ github.event.inputs.host }} ansible_user=${{ github.event.inputs.user }}
+          EOF
+
+      - name: Playbook
+        working-directory: devops/ansible
+        env:
+          ANSIBLE_ROLES_PATH: roles
+        run: |
+          EXTRA=""
+          if [ "${{ github.event.inputs.check_mode }}" = "true" ]; then EXTRA="--check -v"; fi
+          ansible-playbook -i runtime/hosts.ini playbooks/deploy.yml \
+            -e OPENAI_API_KEY='${{ secrets.OPENAI_API_KEY || "" }}' \
+            -e TELEGRAM_BOT_TOKEN='${{ secrets.TELEGRAM_BOT_TOKEN || "" }}' \
+            $EXTRA
