@@ -1,5 +1,4 @@
 name: CD (self-hosted)
-
 on:
   workflow_run:
     workflows: ["CI (Core)"]

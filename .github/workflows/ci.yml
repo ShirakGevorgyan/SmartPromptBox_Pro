@@ -1,7 +1,5 @@
 name: CI (Core)
-
 on:
-  workflow_dispatch: {}
   push:
     branches: [ main ]
     paths-ignore:
@@ -12,6 +10,7 @@ on:
     paths-ignore:
       - 'README.md'
       - 'docs/**'
+  workflow_dispatch: {}
 
 permissions:
   contents: read
