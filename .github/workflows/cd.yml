@@ -112,7 +112,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Telegram notify (CD result)
-        if: ${{ always() && secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER != '' && secrets.TELEGRAM_CHAT_ID != '' }}
+        if: ${{ always() }}
         env:
           TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}
           TG_CHAT:  ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -120,6 +120,8 @@ jobs:
           STATUS:   ${{ job.status }}
           BRANCH:   ${{ github.ref_name }}
         run: |
+          if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then
+            echo "No Telegram secrets, skipping notify."; exit 0; fi
           ICON=$([ "$STATUS" = "success" ] && echo "🚀" || echo "🔥")
           TEXT="${ICON} CD (${BRANCH}): ${STATUS^^}"
           read -r -d '' PAYLOAD <<'JSON' || true

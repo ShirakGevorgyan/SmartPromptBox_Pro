@@ -233,17 +233,25 @@ jobs:
     steps:
       - name: Build summary
         id: sum
+        env:
+          R_LINT:  ${{ needs.lint.result }}
+          R_TYPES: ${{ needs.types.result }}
+          R_UNIT:  ${{ needs.unit_tests.result }}
+          R_SEC:   ${{ needs.security.result }}
+          R_DOCK:  ${{ needs.docker_build.result }}
+          R_SMOKE: ${{ needs.compose_smoke.result }}
+          R_TF:    ${{ needs.terraform_validate.result }}
+          R_ANS:   ${{ needs.ansible_syntax.result }}
         run: |
-          OVERALL="success"
-          for k in lint types unit_tests security docker_build compose_smoke terraform_validate ansible_syntax; do
-            v="${{ needs[k].result }}"
-            echo "$k=$v"
-            if [ "$v" != "success" ]; then OVERALL="failure"; fi
+          OVERALL=success
+          for v in "$R_LINT" "$R_TYPES" "$R_UNIT" "$R_SEC" "$R_DOCK" "$R_SMOKE" "$R_TF" "$R_ANS"; do
+            echo "job=$v"
+            if [ "$v" != "success" ]; then OVERALL=failure; fi
           done
-          echo "overall=$OVERALL" >> $GITHUB_OUTPUT
+          echo "overall=$OVERALL" >> "$GITHUB_OUTPUT"
 
       - name: Telegram (CI result)
-        if: ${{ always() && secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER != '' && secrets.TELEGRAM_CHAT_ID != '' }}
+        if: ${{ always() }}
         env:
           TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}
           TG_CHAT:  ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -251,6 +259,9 @@ jobs:
           STATUS:   ${{ steps.sum.outputs.overall }}
           BRANCH:   ${{ github.ref_name }}
         run: |
+          # skip if secrets not set
+          if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then
+            echo "No Telegram secrets, skipping notify."; exit 0; fi
           ICON=$([ "$STATUS" = "success" ] && echo "✅" || echo "❌")
           TEXT="${ICON} CI (${BRANCH}): ${STATUS^^}"
           read -r -d '' PAYLOAD <<'JSON' || true
@@ -262,3 +273,4 @@ jobs:
                       PAYLOAD="${PAYLOAD/__URL__/${RUN_URL}}"
                       curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
                           -H 'Content-Type: application/json' -d "$PAYLOAD" >/dev/null
+
