@@ -27,28 +27,23 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-
       - name: Cache pip
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
           restore-keys: ${{ runner.os }}-pip-
-
       - name: Install deps for lint
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           pip install ruff
-
       - name: Ruff checks
-        run: |
-          ruff check .
+        run: ruff check .
 
   types:
     name: Types (mypy)
@@ -69,11 +64,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           pip install mypy
       - name: Run mypy
-        run: |
-          mypy --config-file mypy.ini --explicit-package-bases app
-
-
-
+        run: mypy --config-file mypy.ini --explicit-package-bases app
 
   unit_tests:
     name: Unit tests + Coverage
@@ -102,7 +93,6 @@ jobs:
         run: |
           pytest -q tests/unit --maxfail=1 --disable-warnings \
             --cov=app --cov-report=xml --cov-report=html
-
       - name: Upload coverage HTML
         uses: actions/upload-artifact@v4
         with:
@@ -148,25 +138,22 @@ jobs:
       - uses: actions/checkout@v4
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
-
       - name: Build dev image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: devops/docker/app/Dockerfile.dev
           push: false
-          load: true   
+          load: true
           tags: smartpromptbox_pro:dev
-
       - name: Build prod image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: devops/docker/app/Dockerfile
           push: false
-          load: true         
+          load: true
           tags: smartpromptbox_pro:prod
-
 
   compose_smoke:
     name: Compose Smoke (config + import check)
@@ -174,23 +161,18 @@ jobs:
     needs: [docker_build]
     steps:
       - uses: actions/checkout@v4
-
       - name: Create dummy .env for compose
         run: |
           cat > .env <<'EOF'
           OPENAI_API_KEY=test-key
           TELEGRAM_BOT_TOKEN=test-token
           EOF
-
       - name: Validate compose (dev)
-        run: docker compose -f devops/compose/docker-compose.dev.yml config
-
+        run: docker compose -f devops/compose/docker-compose.dev.yml config --no-interpolate
       - name: Validate compose (prod)
-        run: docker compose -f devops/compose/docker-compose.prod.yml config
-
+        run: docker compose -f devops/compose/docker-compose.prod.yml config --no-interpolate
       - name: Import check via compose run (dev)
         run: docker compose -f devops/compose/docker-compose.dev.yml run --rm smartbox-app python -c "import app; print('ok')"
-
       - name: Cleanup
         if: always()
         run: docker compose -f devops/compose/docker-compose.dev.yml down --remove-orphans || true
@@ -206,13 +188,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-
       - name: Terraform fmt (auto)
         run: terraform fmt -recursive
-
       - name: Terraform init (no backend)
         run: terraform init -backend=false
-
       - name: Terraform validate
         run: terraform validate
 
@@ -223,10 +202,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Install Ansible (minimal)
         run: pipx install ansible-core
-
       - name: 'Sanity: list ansible tree'
         working-directory: devops/ansible
         run: |
@@ -235,9 +212,54 @@ jobs:
           ls -la inventory
           ls -la playbooks
           ls -la roles
-
       - name: Syntax check
         working-directory: devops/ansible
         env:
           ANSIBLE_ROLES_PATH: roles
         run: ansible-playbook -i inventory/hosts.ini --syntax-check playbooks/deploy.yml
+
+  notify_ci:
+    name: Notify (CI → Telegram)
+    needs:
+      - lint
+      - types
+      - unit_tests
+      - security
+      - docker_build
+      - compose_smoke
+      - terraform_validate
+      - ansible_syntax
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    steps:
+      - name: Build summary
+        id: sum
+        run: |
+          OVERALL="success"
+          for k in lint types unit_tests security docker_build compose_smoke terraform_validate ansible_syntax; do
+            v="${{ needs[k].result }}"
+            echo "$k=$v"
+            if [ "$v" != "success" ]; then OVERALL="failure"; fi
+          done
+          echo "overall=$OVERALL" >> $GITHUB_OUTPUT
+
+      - name: Telegram (CI result)
+        if: ${{ always() && secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER != '' && secrets.TELEGRAM_CHAT_ID != '' }}
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}
+          TG_CHAT:  ${{ secrets.TELEGRAM_CHAT_ID }}
+          RUN_URL:  https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          STATUS:   ${{ steps.sum.outputs.overall }}
+          BRANCH:   ${{ github.ref_name }}
+        run: |
+          ICON=$([ "$STATUS" = "success" ] && echo "✅" || echo "❌")
+          TEXT="${ICON} CI (${BRANCH}): ${STATUS^^}"
+          read -r -d '' PAYLOAD <<'JSON' || true
+          {"chat_id":"__CHAT__","text":"__TEXT__",
+            "reply_markup":{"inline_keyboard":[[{"text":"View CI logs","url":"__URL__"}]]}}
+            JSON
+                      PAYLOAD="${PAYLOAD/__CHAT__/${TG_CHAT}}"
+                      PAYLOAD="${PAYLOAD/__TEXT__/${TEXT}}"
+                      PAYLOAD="${PAYLOAD/__URL__/${RUN_URL}}"
+                      curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+                          -H 'Content-Type: application/json' -d "$PAYLOAD" >/dev/null

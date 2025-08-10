@@ -1,107 +1,134 @@
-# name: CD (remote server via SSH)
+name: CD (self-hosted)
 
-# on:
-#   workflow_dispatch:
-#     inputs:
-#       host:
-#         description: "Target host (IP or DNS)"
-#         required: true
-#       user:
-#         description: "SSH user"
-#         required: true
-#       port:
-#         description: "SSH port"
-#         required: false
-#         default: "22"
-#       check_mode:
-#         description: "Run Ansible in --check (dry-run)?"
-#         required: true
-#         default: "true"
-#         type: choice
-#         options: ["true", "false"]
+on:
+  workflow_run:
+    workflows: ["CI (Core)"]
+    types: [completed]
+  workflow_dispatch: {}
 
-# permissions:
-#   contents: read
+permissions:
+  contents: read
 
-# jobs:
-#   deploy:
-#     name: Ansible deploy
-#     runs-on: ubuntu-latest
-#     env:
-#       ANSIBLE_STDOUT_CALLBACK: yaml
-#       ANSIBLE_HOST_KEY_CHECKING: "True"
-#     steps:
-#       - uses: actions/checkout@v4
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: true
 
-#       - name: Set up Python (for ansible)
-#         uses: actions/setup-python@v5
-#         with:
-#           python-version: "3.10"
+jobs:
+  deploy_local:
+    name: Deploy via Ansible on my machine
+    runs-on: [self-hosted, Linux, X64]
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
-#       - name: Install Ansible (pip is simpler on runners)
-#         run: |
-#           python -m pip install --upgrade pip
-#           pip install "ansible-core~=2.17" "ansible~=9.0"  # core + meta
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-#       - name: Install Galaxy deps (if any)
-#         working-directory: devops/ansible
-#         run: |
-#           if [ -f requirements.yml ]; then
-#             ansible-galaxy install -r requirements.yml
-#           fi
+      - name: Ensure prerequisites (Ansible, Docker)
+        run: |
+          set -e
+          if ! command -v ansible-playbook >/dev/null 2>&1; then
+            sudo apt-get update -y && sudo apt-get install -y ansible
+          fi
+          if ! command -v docker >/dev/null 2>&1; then
+            sudo apt-get update -y && sudo apt-get install -y docker.io
+            sudo usermod -aG docker $USER || true
+          fi
+          if ! docker compose version >/dev/null 2>&1; then
+            sudo apt-get install -y docker-compose
+          fi
 
-#       - name: Load SSH key
-#         uses: webfactory/ssh-agent@v0.9.0
-#         with:
-#           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Write fresh .env from Secrets (overwrite each run)
+        run: |
+          : > .env
+          printf "OPENAI_API_KEY=%s\n" "${{ secrets.OPENAI_API_KEY }}" >> .env
+          printf "TELEGRAM_BOT_TOKEN=%s\n" "${{ secrets.TELEGRAM_BOT_TOKEN }}" >> .env
+          printf "GENIUS_ACCESS_TOKEN=%s\n" "${{ secrets.GENIUS_ACCESS_TOKEN }}" >> .env
+          printf "TELEGRAM_CHAT_ID=%s\n" "${{ secrets.TELEGRAM_CHAT_ID }}" >> .env
+          printf "DATABASE_URL=%s\n" "${{ secrets.DATABASE_URL }}" >> .env
+          sed -E 's/(=).+/\1*****/' .env
 
-#       - name: Add host to known_hosts
-#         run: |
-#           mkdir -p ~/.ssh
-#           ssh-keyscan -p "${{ github.event.inputs.port }}" -H "${{ github.event.inputs.host }}" >> ~/.ssh/known_hosts
+      - name: Create runtime inventory (localhost)
+        working-directory: devops/ansible
+        run: |
+          mkdir -p runtime
+          cat > runtime/hosts.ini <<'EOF'
+          [target]
+          127.0.0.1 ansible_connection=local
+          EOF
+          cat runtime/hosts.ini
 
-#       - name: Runtime inventory
-#         run: |
-#           mkdir -p devops/ansible/runtime
-#           cat > devops/ansible/runtime/hosts.ini <<'EOF'
-#           [target]
-#           ${{ github.event.inputs.host }} ansible_user=${{ github.event.inputs.user }} ansible_port=${{ github.event.inputs.port }}
-#           EOF
-#           echo "=== hosts.ini ==="
-#           cat devops/ansible/runtime/hosts.ini
+      - name: Create minimal runtime playbook
+        working-directory: devops/ansible
+        run: |
+          cat > runtime/deploy_local.yml <<'YAML'
+          ---
+          - name: Local deploy via docker compose
+            hosts: target
+            gather_facts: false
+            vars:
+              project_dir: "{{ lookup('env','GITHUB_WORKSPACE') | default(ansible_env.PWD, true) }}"
+              compose_file: "{{ project_dir }}/devops/compose/docker-compose.prod.yml"
+            tasks:
+              - name: docker compose up -d --build (prod)
+                command: docker compose -f "{{ compose_file }}" up -d --build
+                args: { chdir: "{{ project_dir }}" }
+          YAML
+          cat runtime/deploy_local.yml
 
-#       - name: Ansible config (runtime)
-#         run: |
-#           cat > devops/ansible/ansible.cfg <<'EOF'
-#           [defaults]
-#           inventory = runtime/hosts.ini
-#           host_key_checking = True
-#           stdout_callback = yaml
-#           timeout = 30
-#           forks = 20
-#           bin_ansible_callbacks = True
-#           interpreter_python = auto_silent
-#           remote_tmp = /tmp/.ansible-${USER}/tmp
-#           [ssh_connection]
-#           ssh_args = -o ControlMaster=auto -o ControlPersist=60s
-#           pipelining = True
-#           EOF
-#           echo "=== ansible.cfg ==="
-#           cat devops/ansible/ansible.cfg
+      - name: Deploy (Ansible → docker compose up)
+        working-directory: devops/ansible
+        run: ansible-playbook -i runtime/hosts.ini runtime/deploy_local.yml
 
-#       - name: Playbook (deploy)
-#         working-directory: devops/ansible
-#         env:
-#           ANSIBLE_ROLES_PATH: roles
-#         run: |
-#           EXTRA=""
-#           if [ "${{ github.event.inputs.check_mode }}" = "true" ]; then EXTRA="--check -v"; fi
+      - name: Wait for health=healthy
+        env:
+          SVC: app
+        run: |
+          set -e
+          CID="$(docker ps --format '{{.ID}}\t{{.Names}}' | awk -v s="$SVC" '$2 ~ "-"s"-" {print $1; exit}')"
+          if [ -z "$CID" ]; then echo "Container not found"; exit 1; fi
+          echo "Waiting for healthy: $CID"
+          for i in {1..60}; do
+            HS="$(docker inspect -f '{{.State.Health.Status}}' "$CID" 2>/dev/null || echo 'unknown')"
+            echo "[$i] health=$HS"
+            [ "$HS" = "healthy" ] && exit 0
+            sleep 2
+          done
+          echo "Timeout waiting for healthy"; docker logs --tail=80 "$CID"; exit 1
 
-#           # Example extra-vars (extend as needed)
-#           ansible-playbook playbooks/deploy.yml \
-#             -e OPENAI_API_KEY='${{ secrets.OPENAI_API_KEY || "" }}' \
-#             -e TELEGRAM_BOT_TOKEN='${{ secrets.TELEGRAM_BOT_TOKEN || "" }}' \
-#             -e TELEGRAM_BOT_TOKEN_TEST_NOTIFIER='${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER || "" }}' \
-#             -e TELEGRAM_CHAT_ID='${{ secrets.TELEGRAM_CHAT_ID || "" }}' \
-#             -e DATABASE_URL='${{ secrets.DATABASE_URL || "sqlite:///db/memory.db" }}' \
-#             $EXTRA
+      - name: Tail logs (masked) + artifact
+        id: logs
+        run: |
+          CID="$(docker ps --format '{{.ID}}\t{{.Names}}' | awk '$2 ~ /-app-/ {print $1; exit}')"
+          [ -n "$CID" ] || exit 0
+          docker logs --tail=80 "$CID" 2>&1 \
+            | sed -E 's/(sk-[A-Za-z0-9_-]+)/sk-*****/g' \
+            | sed -E 's/([0-9]{9,}:[A-Za-z0-9_-]{20,})/**token**/g' \
+            | tee cd-logs.txt
+          echo "logfile=cd-logs.txt" >> $GITHUB_OUTPUT
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() && steps.logs.outputs.logfile != '' }}
+        with:
+          name: cd-logs
+          path: cd-logs.txt
+          if-no-files-found: ignore
+
+      - name: Telegram notify (CD result)
+        if: ${{ always() && secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER != '' && secrets.TELEGRAM_CHAT_ID != '' }}
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}
+          TG_CHAT:  ${{ secrets.TELEGRAM_CHAT_ID }}
+          RUN_URL:  https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          STATUS:   ${{ job.status }}
+          BRANCH:   ${{ github.ref_name }}
+        run: |
+          ICON=$([ "$STATUS" = "success" ] && echo "🚀" || echo "🔥")
+          TEXT="${ICON} CD (${BRANCH}): ${STATUS^^}"
+          read -r -d '' PAYLOAD <<'JSON' || true
+          {"chat_id":"__CHAT__","text":"__TEXT__",
+            "reply_markup":{"inline_keyboard":[[{"text":"View CD logs","url":"__URL__"}]]}}
+            JSON
+                      PAYLOAD="${PAYLOAD/__CHAT__/${TG_CHAT}}"
+                      PAYLOAD="${PAYLOAD/__TEXT__/${TEXT}}"
+                      PAYLOAD="${PAYLOAD/__URL__/${RUN_URL}}"
+                      curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+                          -H 'Content-Type: application/json' -d "$PAYLOAD" >/dev/null

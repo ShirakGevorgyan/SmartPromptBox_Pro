@@ -1,99 +1,99 @@
-name: CD (Local Ansible Deploy)
+# name: CD (Local Ansible Deploy)
 
-on:
-  push:
-    branches: [ main ]
-    paths-ignore:
-      - 'README.md'
-      - 'docs/**'
-  workflow_dispatch: {}
+# on:
+#   push:
+#     branches: [ main ]
+#     paths-ignore:
+#       - 'README.md'
+#       - 'docs/**'
+#   workflow_dispatch: {}
 
-permissions:
-  contents: read
+# permissions:
+#   contents: read
 
-concurrency:
-  group: cd-local-${{ github.ref }}
-  cancel-in-progress: true
+# concurrency:
+#   group: cd-local-${{ github.ref }}
+#   cancel-in-progress: true
 
-jobs:
-  deploy_local:
-    name: Deploy on my local (self-hosted)
-    runs-on: self-hosted
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+# jobs:
+#   deploy_local:
+#     name: Deploy on my local (self-hosted)
+#     runs-on: self-hosted
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
 
-      - name: Ensure prerequisites (Ansible, Docker)
-        run: |
-          set -e
-          if ! command -v ansible-playbook >/dev/null 2>&1; then
-            sudo apt-get update -y
-            sudo apt-get install -y ansible
-          fi
-          if ! command -v docker >/dev/null 2>&1; then
-            sudo apt-get update -y
-            sudo apt-get install -y docker.io
-            sudo usermod -aG docker $USER || true
-          fi
-          if ! docker compose version >/dev/null 2>&1; then
-            # docker compose plugin (Ubuntu-ի վրա հաճախ արդեն կա)
-            sudo apt-get install -y docker-compose
-          fi
-      - name: Write .env if missing (printf, no heredoc)
-        run: |
-          if [ ! -f .env ]; then
-            : > .env
-            printf "OPENAI_API_KEY=%s\n" "${{ secrets.OPENAI_API_KEY }}" >> .env
-            printf "TELEGRAM_BOT_TOKEN=%s\n" "${{ secrets.TELEGRAM_BOT_TOKEN }}" >> .env
-            printf "GENIUS_ACCESS_TOKEN=%s\n" "${{ secrets.GENIUS_ACCESS_TOKEN }}" >> .env
-            printf "TELEGRAM_CHAT_ID=%s\n" "${{ secrets.TELEGRAM_CHAT_ID }}" >> .env
-            printf "DATABASE_URL=%s\n" "${{ secrets.DATABASE_URL }}" >> .env
-            sed -E 's/(=).+/\1*****/' .env
-          fi
+#       - name: Ensure prerequisites (Ansible, Docker)
+#         run: |
+#           set -e
+#           if ! command -v ansible-playbook >/dev/null 2>&1; then
+#             sudo apt-get update -y
+#             sudo apt-get install -y ansible
+#           fi
+#           if ! command -v docker >/dev/null 2>&1; then
+#             sudo apt-get update -y
+#             sudo apt-get install -y docker.io
+#             sudo usermod -aG docker $USER || true
+#           fi
+#           if ! docker compose version >/dev/null 2>&1; then
+#             # docker compose plugin (Ubuntu-ի վրա հաճախ արդեն կա)
+#             sudo apt-get install -y docker-compose
+#           fi
+#       - name: Write .env if missing (printf, no heredoc)
+#         run: |
+#           if [ ! -f .env ]; then
+#             : > .env
+#             printf "OPENAI_API_KEY=%s\n" "${{ secrets.OPENAI_API_KEY }}" >> .env
+#             printf "TELEGRAM_BOT_TOKEN=%s\n" "${{ secrets.TELEGRAM_BOT_TOKEN }}" >> .env
+#             printf "GENIUS_ACCESS_TOKEN=%s\n" "${{ secrets.GENIUS_ACCESS_TOKEN }}" >> .env
+#             printf "TELEGRAM_CHAT_ID=%s\n" "${{ secrets.TELEGRAM_CHAT_ID }}" >> .env
+#             printf "DATABASE_URL=%s\n" "${{ secrets.DATABASE_URL }}" >> .env
+#             sed -E 's/(=).+/\1*****/' .env
+#           fi
 
-      - name: Create runtime inventory (localhost)
-        working-directory: devops/ansible
-        run: |
-          mkdir -p runtime
-          cat > runtime/hosts.ini <<'EOF'
-          [target]
-          127.0.0.1 ansible_connection=local
-          EOF
-          echo "=== runtime/hosts.ini ==="
-          cat runtime/hosts.ini
+#       - name: Create runtime inventory (localhost)
+#         working-directory: devops/ansible
+#         run: |
+#           mkdir -p runtime
+#           cat > runtime/hosts.ini <<'EOF'
+#           [target]
+#           127.0.0.1 ansible_connection=local
+#           EOF
+#           echo "=== runtime/hosts.ini ==="
+#           cat runtime/hosts.ini
 
-      - name: Create minimal runtime playbook (no repo changes)
-        working-directory: devops/ansible
-        run: |
-          cat > runtime/deploy_local.yml <<'YAML'
-          ---
-          - name: Local deploy via docker compose
-            hosts: target
-            gather_facts: false
-            vars:
-              project_dir: "{{ lookup('env','GITHUB_WORKSPACE') | default(ansible_env.PWD, true) }}"
-              compose_file: "{{ project_dir }}/devops/compose/docker-compose.prod.yml"
-            tasks:
-              - name: Show paths
-                debug:
-                  msg:
-                    - "project_dir={{ project_dir }}"
-                    - "compose_file={{ compose_file }}"
-                    - ".env expected at repo root: {{ project_dir }}/.env"
+#       - name: Create minimal runtime playbook (no repo changes)
+#         working-directory: devops/ansible
+#         run: |
+#           cat > runtime/deploy_local.yml <<'YAML'
+#           ---
+#           - name: Local deploy via docker compose
+#             hosts: target
+#             gather_facts: false
+#             vars:
+#               project_dir: "{{ lookup('env','GITHUB_WORKSPACE') | default(ansible_env.PWD, true) }}"
+#               compose_file: "{{ project_dir }}/devops/compose/docker-compose.prod.yml"
+#             tasks:
+#               - name: Show paths
+#                 debug:
+#                   msg:
+#                     - "project_dir={{ project_dir }}"
+#                     - "compose_file={{ compose_file }}"
+#                     - ".env expected at repo root: {{ project_dir }}/.env"
 
-              - name: docker compose up -d --build (prod)
-                command: docker compose -f "{{ compose_file }}" up -d --build
-                args:
-                  chdir: "{{ project_dir }}"
-          YAML
-          echo "=== runtime/deploy_local.yml ==="
-          cat runtime/deploy_local.yml
+#               - name: docker compose up -d --build (prod)
+#                 command: docker compose -f "{{ compose_file }}" up -d --build
+#                 args:
+#                   chdir: "{{ project_dir }}"
+#           YAML
+#           echo "=== runtime/deploy_local.yml ==="
+#           cat runtime/deploy_local.yml
 
-      - name: Deploy (Ansible → docker compose up)
-        working-directory: devops/ansible
-        run: |
-          ansible-playbook -i runtime/hosts.ini runtime/deploy_local.yml
+#       - name: Deploy (Ansible → docker compose up)
+#         working-directory: devops/ansible
+#         run: |
+#           ansible-playbook -i runtime/hosts.ini runtime/deploy_local.yml
 
-      - name: Show containers
-        run: |
-          docker compose -f devops/compose/docker-compose.prod.yml ps
+#       - name: Show containers
+#         run: |
+#           docker compose -f devops/compose/docker-compose.prod.yml ps
