@@ -217,60 +217,32 @@ jobs:
           ANSIBLE_ROLES_PATH: roles
         run: ansible-playbook -i inventory/hosts.ini --syntax-check playbooks/deploy.yml
 
-  notify_ci_success:
-    name: 📤 CI Notify (Success)
-    needs:
-      - lint
-      - types
-      - unit_tests
-      - security
-      - docker_build
-      - compose_smoke
-      - terraform_validate
-      - ansible_syntax
-    runs-on: ubuntu-latest
-    if: success()
-    steps:
-      - name: 📤 Notify on Success with Button
+      - name: 📤 CI Notify (Success)
+        if: success()
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}
+          TG_CHAT:  ${{ secrets.TELEGRAM_CHAT_ID }}
+          RUN_URL:  https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          BRANCH:   ${{ github.ref_name }}
         run: |
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}/sendMessage" \
-          -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-          -d text="🟢 CI (${ { github.ref_name } }) հաջողությամբ ավարտվեց ✅\n🔗 Բացիր GitHub Actions-ի լոգերը👇" \
-          -d parse_mode="HTML" \
-          -d reply_markup='{
-                "inline_keyboard": [[
-                    {
-                        "text": "📄 View CI logs",
-                        "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                    }
-                ]]
-              }'
+          if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then echo "No TG secrets; skip"; exit 0; fi
+          curl -s -X POST "https://api.telegram.org/bot$TG_TOKEN/sendMessage" \
+            -d chat_id="$TG_CHAT" \
+            -d parse_mode="HTML" \
+            -d text="🟢 CI (<b>${BRANCH}</b>) հաջող ավարտվեց ✅" \
+            -d reply_markup='{"inline_keyboard":[[{"text":"📄 View CI logs","url":"'"$RUN_URL"'"}]]}'
 
-  notify_ci_failure:
-    name: ❌ CI Notify (Failure)
-    needs:
-      - lint
-      - types
-      - unit_tests
-      - security
-      - docker_build
-      - compose_smoke
-      - terraform_validate
-      - ansible_syntax
-    runs-on: ubuntu-latest
-    if: failure()
-    steps:
-      - name: ❌ Notify on Failure with Button
+      - name: ❌ CI Notify (Failure)
+        if: failure()
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}
+          TG_CHAT:  ${{ secrets.TELEGRAM_CHAT_ID }}
+          RUN_URL:  https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          BRANCH:   ${{ github.ref_name }}
         run: |
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}/sendMessage" \
-          -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-          -d text="🚨 CI (${ { github.ref_name } }) FAIL եղավ ❌\n🔎 Բացիր GitHub Actions-ի լոգերը👇" \
-          -d parse_mode="HTML" \
-          -d reply_markup='{
-                "inline_keyboard": [[
-                    {
-                        "text": "📄 View CI logs",
-                        "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                    }
-                ]]
-              }'
+          if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then echo "No TG secrets; skip"; exit 0; fi
+          curl -s -X POST "https://api.telegram.org/bot$TG_TOKEN/sendMessage" \
+            -d chat_id="$TG_CHAT" \
+            -d parse_mode="HTML" \
+            -d text="🚨 CI (<b>${BRANCH}</b>) FAILED ❌" \
+            -d reply_markup='{"inline_keyboard":[[{"text":"📄 View CI logs","url":"'"$RUN_URL"'"}]]}'
