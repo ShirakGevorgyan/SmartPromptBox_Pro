@@ -1,35 +1,16 @@
-# Python/venv/cache
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
-*.so
-venv/
+.pytest_cache/
 .env
 *.env
-
-# Tests outputs
-.pytest_cache/
-coverage/
-htmlcov/
-*.log
-
-# Local DB & images
+secrets/
+logs/
 db/
-*.sqlite
-*.db
-images/
-
-# Git
 .git
-.gitignore
-
-# IDE
 .vscode/
 .idea/
-
-# OS
 .DS_Store
 Thumbs.db
+
 
 actions-runner/

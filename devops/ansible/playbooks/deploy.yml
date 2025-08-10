@@ -1,6 +1,11 @@
 ---
-- name: Demo deploy on localhost (dry-run friendly)
-  hosts: local
-  gather_facts: false
+- name: Deploy SmartPromptBox Pro (local)
+  hosts: smartpromptbox
+  become: true
+  vars:
+    app_dir: /opt/smartpromptbox
+    compose_file: "{{ app_dir }}/docker-compose.yml"
+    env_file: "{{ app_dir }}/.env"
+
   roles:
-    - app
+    - deploy_app

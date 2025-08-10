@@ -1,60 +1,107 @@
-name: CD (remote server via SSH)
+# name: CD (remote server via SSH)
 
-on:
-  workflow_dispatch:
-    inputs:
-      host:
-        description: "Target host (IP or DNS)"
-        required: true
-      user:
-        description: "SSH user"
-        required: true
-      check_mode:
-        description: "Run Ansible in --check (dry-run)?"
-        required: true
-        default: "true"
-        type: choice
-        options: ["true", "false"]
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       host:
+#         description: "Target host (IP or DNS)"
+#         required: true
+#       user:
+#         description: "SSH user"
+#         required: true
+#       port:
+#         description: "SSH port"
+#         required: false
+#         default: "22"
+#       check_mode:
+#         description: "Run Ansible in --check (dry-run)?"
+#         required: true
+#         default: "true"
+#         type: choice
+#         options: ["true", "false"]
 
-permissions:
-  contents: read
+# permissions:
+#   contents: read
 
-jobs:
-  deploy:
-    name: Ansible deploy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+# jobs:
+#   deploy:
+#     name: Ansible deploy
+#     runs-on: ubuntu-latest
+#     env:
+#       ANSIBLE_STDOUT_CALLBACK: yaml
+#       ANSIBLE_HOST_KEY_CHECKING: "True"
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Install Ansible
-        run: pipx install ansible-core
+#       - name: Set up Python (for ansible)
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: "3.10"
 
-      - name: SSH key
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+#       - name: Install Ansible (pip is simpler on runners)
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install "ansible-core~=2.17" "ansible~=9.0"  # core + meta
 
-      - name: Add host to known_hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H "${{ github.event.inputs.host }}" >> ~/.ssh/known_hosts
+#       - name: Install Galaxy deps (if any)
+#         working-directory: devops/ansible
+#         run: |
+#           if [ -f requirements.yml ]; then
+#             ansible-galaxy install -r requirements.yml
+#           fi
 
-      - name: Runtime inventory
-        run: |
-          mkdir -p devops/ansible/runtime
-          cat > devops/ansible/runtime/hosts.ini <<EOF
-          [target]
-          ${{ github.event.inputs.host }} ansible_user=${{ github.event.inputs.user }}
-          EOF
+#       - name: Load SSH key
+#         uses: webfactory/ssh-agent@v0.9.0
+#         with:
+#           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Playbook
-        working-directory: devops/ansible
-        env:
-          ANSIBLE_ROLES_PATH: roles
-        run: |
-          EXTRA=""
-          if [ "${{ github.event.inputs.check_mode }}" = "true" ]; then EXTRA="--check -v"; fi
-          ansible-playbook -i runtime/hosts.ini playbooks/deploy.yml \
-            -e OPENAI_API_KEY='${{ secrets.OPENAI_API_KEY || "" }}' \
-            -e TELEGRAM_BOT_TOKEN='${{ secrets.TELEGRAM_BOT_TOKEN || "" }}' \
-            $EXTRA
+#       - name: Add host to known_hosts
+#         run: |
+#           mkdir -p ~/.ssh
+#           ssh-keyscan -p "${{ github.event.inputs.port }}" -H "${{ github.event.inputs.host }}" >> ~/.ssh/known_hosts
+
+#       - name: Runtime inventory
+#         run: |
+#           mkdir -p devops/ansible/runtime
+#           cat > devops/ansible/runtime/hosts.ini <<'EOF'
+#           [target]
+#           ${{ github.event.inputs.host }} ansible_user=${{ github.event.inputs.user }} ansible_port=${{ github.event.inputs.port }}
+#           EOF
+#           echo "=== hosts.ini ==="
+#           cat devops/ansible/runtime/hosts.ini
+
+#       - name: Ansible config (runtime)
+#         run: |
+#           cat > devops/ansible/ansible.cfg <<'EOF'
+#           [defaults]
+#           inventory = runtime/hosts.ini
+#           host_key_checking = True
+#           stdout_callback = yaml
+#           timeout = 30
+#           forks = 20
+#           bin_ansible_callbacks = True
+#           interpreter_python = auto_silent
+#           remote_tmp = /tmp/.ansible-${USER}/tmp
+#           [ssh_connection]
+#           ssh_args = -o ControlMaster=auto -o ControlPersist=60s
+#           pipelining = True
+#           EOF
+#           echo "=== ansible.cfg ==="
+#           cat devops/ansible/ansible.cfg
+
+#       - name: Playbook (deploy)
+#         working-directory: devops/ansible
+#         env:
+#           ANSIBLE_ROLES_PATH: roles
+#         run: |
+#           EXTRA=""
+#           if [ "${{ github.event.inputs.check_mode }}" = "true" ]; then EXTRA="--check -v"; fi
+
+#           # Example extra-vars (extend as needed)
+#           ansible-playbook playbooks/deploy.yml \
+#             -e OPENAI_API_KEY='${{ secrets.OPENAI_API_KEY || "" }}' \
+#             -e TELEGRAM_BOT_TOKEN='${{ secrets.TELEGRAM_BOT_TOKEN || "" }}' \
+#             -e TELEGRAM_BOT_TOKEN_TEST_NOTIFIER='${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER || "" }}' \
+#             -e TELEGRAM_CHAT_ID='${{ secrets.TELEGRAM_CHAT_ID || "" }}' \
+#             -e DATABASE_URL='${{ secrets.DATABASE_URL || "sqlite:///db/memory.db" }}' \
+#             $EXTRA

@@ -1,0 +1,40 @@
+---
+- name: Install Docker engine (Debian/Ubuntu)
+  package:
+    name: docker.io
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Install docker compose plugin
+  package:
+    name: docker-compose
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Create app directory
+  file:
+    path: "{{ app_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Render docker-compose.yml from template
+  template:
+    src: docker-compose.prod.yml.j2
+    dest: "{{ compose_file }}"
+    mode: "0644"
+
+- name: Write .env (runtime secrets)
+  copy:
+    dest: "{{ env_file }}"
+    mode: "0600"
+    content: |
+      OPENAI_API_KEY={{ OPENAI_API_KEY | default('') }}
+      TELEGRAM_BOT_TOKEN={{ TELEGRAM_BOT_TOKEN | default('') }}
+      TELEGRAM_BOT_TOKEN_TEST_NOTIFIER={{ TELEGRAM_BOT_TOKEN_TEST_NOTIFIER | default('') }}
+      TELEGRAM_CHAT_ID={{ TELEGRAM_CHAT_ID | default('') }}
+      DATABASE_URL={{ DATABASE_URL | default('sqlite:///db/memory.db') }}
+
+- name: Up containers
+  command: docker compose -f "{{ compose_file }}" up -d --pull=always --build
+  args:
+    chdir: "{{ app_dir }}"

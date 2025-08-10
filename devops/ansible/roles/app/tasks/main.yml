@@ -1,6 +1,0 @@
----
-- name: Show intended deploy parameters
-  debug:
-    msg:
-      - "Would run container: smartpromptbox_pro:prod"
-      - "Env: OPENAI_API_KEY / TELEGRAM_BOT_TOKEN via secrets/.env"
