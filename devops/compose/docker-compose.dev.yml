@@ -6,7 +6,6 @@ services:
     container_name: smartbox-app
     env_file: ../../.env
     environment:
-      # CI-ում եթե .env չգտնվի, defaults կտա
       OPENAI_API_KEY: ${OPENAI_API_KEY:-test-key}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-test-token}
     volumes:

@@ -7,11 +7,14 @@ services:
 
     env_file:
       - ../../.env
+
     environment:
+      GENIUS_ACCESS_TOKEN: ${GENIUS_ACCESS_TOKEN}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
-      GENIUS_ACCESS_TOKEN: ${GENIUS_ACCESS_TOKEN}
+      TELEGRAM_BOT_TOKEN_TEST_NOTIFIER: ${TELEGRAM_BOT_TOKEN_TEST_NOTIFIER}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
+
 
     healthcheck:
       test: ["CMD", "python", "-c", "import app; print('ok')"]
