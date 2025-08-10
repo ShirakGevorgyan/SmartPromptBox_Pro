@@ -40,17 +40,15 @@ jobs:
             sudo apt-get install -y docker-compose
           fi
 
-      - name: Create/refresh .env for compose (repo root)
+      - name: Write .env (from Secrets, no heredoc)
         run: |
-          cat > .env <<'EOF'
-          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-          TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
-          GENIUS_ACCESS_TOKEN=${{ secrets.GENIUS_ACCESS_TOKEN }}
-          TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
-          # Optional DB (եթե չունես՝ թող դատարկ մնա կամ sqlite)
-          DATABASE_URL=${{ secrets.DATABASE_URL }}
-          EOF
-          echo "Wrote $(pwd)/.env"
+          : > .env
+          printf "OPENAI_API_KEY=%s\n" "${{ secrets.OPENAI_API_KEY }}" >> .env
+          printf "TELEGRAM_BOT_TOKEN=%s\n" "${{ secrets.TELEGRAM_BOT_TOKEN }}" >> .env
+          printf "GENIUS_ACCESS_TOKEN=%s\n" "${{ secrets.GENIUS_ACCESS_TOKEN }}" >> .env
+          printf "TELEGRAM_CHAT_ID=%s\n" "${{ secrets.TELEGRAM_CHAT_ID }}" >> .env
+          printf "DATABASE_URL=%s\n" "${{ secrets.DATABASE_URL }}" >> .env
+          sed -E 's/(=).+/\1*****/' .env
 
       - name: Create runtime inventory (localhost)
         working-directory: devops/ansible
