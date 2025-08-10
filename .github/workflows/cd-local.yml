@@ -39,8 +39,7 @@ jobs:
             # docker compose plugin (Ubuntu-ի վրա հաճախ արդեն կա)
             sudo apt-get install -y docker-compose
           fi
-
-      - name: Write .env if missing (printf way)
+      - name: Write .env if missing (printf, no heredoc)
         run: |
           if [ ! -f .env ]; then
             : > .env
@@ -51,7 +50,6 @@ jobs:
             printf "DATABASE_URL=%s\n" "${{ secrets.DATABASE_URL }}" >> .env
             sed -E 's/(=).+/\1*****/' .env
           fi
-
 
       - name: Create runtime inventory (localhost)
         working-directory: devops/ansible
