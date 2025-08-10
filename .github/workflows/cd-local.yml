@@ -40,15 +40,18 @@ jobs:
             sudo apt-get install -y docker-compose
           fi
 
-      - name: Write .env (from Secrets, no heredoc)
+      - name: Write .env if missing (printf way)
         run: |
-          : > .env
-          printf "OPENAI_API_KEY=%s\n" "${{ secrets.OPENAI_API_KEY }}" >> .env
-          printf "TELEGRAM_BOT_TOKEN=%s\n" "${{ secrets.TELEGRAM_BOT_TOKEN }}" >> .env
-          printf "GENIUS_ACCESS_TOKEN=%s\n" "${{ secrets.GENIUS_ACCESS_TOKEN }}" >> .env
-          printf "TELEGRAM_CHAT_ID=%s\n" "${{ secrets.TELEGRAM_CHAT_ID }}" >> .env
-          printf "DATABASE_URL=%s\n" "${{ secrets.DATABASE_URL }}" >> .env
-          sed -E 's/(=).+/\1*****/' .env
+          if [ ! -f .env ]; then
+            : > .env
+            printf "OPENAI_API_KEY=%s\n" "${{ secrets.OPENAI_API_KEY }}" >> .env
+            printf "TELEGRAM_BOT_TOKEN=%s\n" "${{ secrets.TELEGRAM_BOT_TOKEN }}" >> .env
+            printf "GENIUS_ACCESS_TOKEN=%s\n" "${{ secrets.GENIUS_ACCESS_TOKEN }}" >> .env
+            printf "TELEGRAM_CHAT_ID=%s\n" "${{ secrets.TELEGRAM_CHAT_ID }}" >> .env
+            printf "DATABASE_URL=%s\n" "${{ secrets.DATABASE_URL }}" >> .env
+            sed -E 's/(=).+/\1*****/' .env
+          fi
+
 
       - name: Create runtime inventory (localhost)
         working-directory: devops/ansible
