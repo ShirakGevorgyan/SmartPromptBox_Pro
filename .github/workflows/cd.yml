@@ -111,25 +111,34 @@ jobs:
           path: cd-logs.txt
           if-no-files-found: ignore
 
-      - name: Telegram notify (CD result)
-        if: ${{ always() }}
-        env:
-          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}
-          TG_CHAT:  ${{ secrets.TELEGRAM_CHAT_ID }}
-          RUN_URL:  https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          STATUS:   ${{ job.status }}
-          BRANCH:   ${{ github.ref_name }}
+      - name: 📤 CD Notify (Success)
+        if: success()
         run: |
-          if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then
-            echo "No Telegram secrets, skipping notify."; exit 0; fi
-          ICON=$([ "$STATUS" = "success" ] && echo "🚀" || echo "🔥")
-          TEXT="${ICON} CD (${BRANCH}): ${STATUS^^}"
-          read -r -d '' PAYLOAD <<'JSON' || true
-          {"chat_id":"__CHAT__","text":"__TEXT__",
-            "reply_markup":{"inline_keyboard":[[{"text":"View CD logs","url":"__URL__"}]]}}
-            JSON
-                      PAYLOAD="${PAYLOAD/__CHAT__/${TG_CHAT}}"
-                      PAYLOAD="${PAYLOAD/__TEXT__/${TEXT}}"
-                      PAYLOAD="${PAYLOAD/__URL__/${RUN_URL}}"
-                      curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
-                          -H 'Content-Type: application/json' -d "$PAYLOAD" >/dev/null
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}/sendMessage" \
+          -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+          -d text="🚀 CD (${ { github.ref_name } }): SUCCESS ✅\n🤖 Bot-ը RUNNING է (healthy)\n🔗 Բացիր CD logs👇" \
+          -d parse_mode="HTML" \
+          -d reply_markup='{
+                "inline_keyboard": [[
+                    {
+                        "text": "📄 View CD logs",
+                        "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                ]]
+              }'
+
+      - name: ❌ CD Notify (Failure)
+        if: failure()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}/sendMessage" \
+          -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+          -d text="🔥 CD (${ { github.ref_name } }): FAILURE ❌\n🔎 Տես CD logs👇" \
+          -d parse_mode="HTML" \
+          -d reply_markup='{
+                "inline_keyboard": [[
+                    {
+                        "text": "📄 View CD logs",
+                        "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                ]]
+              }'

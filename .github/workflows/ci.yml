@@ -217,8 +217,8 @@ jobs:
           ANSIBLE_ROLES_PATH: roles
         run: ansible-playbook -i inventory/hosts.ini --syntax-check playbooks/deploy.yml
 
-  notify_ci:
-    name: Notify (CI → Telegram)
+  notify_ci_success:
+    name: 📤 CI Notify (Success)
     needs:
       - lint
       - types
@@ -229,48 +229,48 @@ jobs:
       - terraform_validate
       - ansible_syntax
     runs-on: ubuntu-latest
-    if: ${{ always() }}
+    if: success()
     steps:
-      - name: Build summary
-        id: sum
-        env:
-          R_LINT:  ${{ needs.lint.result }}
-          R_TYPES: ${{ needs.types.result }}
-          R_UNIT:  ${{ needs.unit_tests.result }}
-          R_SEC:   ${{ needs.security.result }}
-          R_DOCK:  ${{ needs.docker_build.result }}
-          R_SMOKE: ${{ needs.compose_smoke.result }}
-          R_TF:    ${{ needs.terraform_validate.result }}
-          R_ANS:   ${{ needs.ansible_syntax.result }}
+      - name: 📤 Notify on Success with Button
         run: |
-          OVERALL=success
-          for v in "$R_LINT" "$R_TYPES" "$R_UNIT" "$R_SEC" "$R_DOCK" "$R_SMOKE" "$R_TF" "$R_ANS"; do
-            echo "job=$v"
-            if [ "$v" != "success" ]; then OVERALL=failure; fi
-          done
-          echo "overall=$OVERALL" >> "$GITHUB_OUTPUT"
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}/sendMessage" \
+          -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+          -d text="🟢 CI (${ { github.ref_name } }) հաջողությամբ ավարտվեց ✅\n🔗 Բացիր GitHub Actions-ի լոգերը👇" \
+          -d parse_mode="HTML" \
+          -d reply_markup='{
+                "inline_keyboard": [[
+                    {
+                        "text": "📄 View CI logs",
+                        "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                ]]
+              }'
 
-      - name: Telegram (CI result)
-        if: ${{ always() }}
-        env:
-          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}
-          TG_CHAT:  ${{ secrets.TELEGRAM_CHAT_ID }}
-          RUN_URL:  https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          STATUS:   ${{ steps.sum.outputs.overall }}
-          BRANCH:   ${{ github.ref_name }}
+  notify_ci_failure:
+    name: ❌ CI Notify (Failure)
+    needs:
+      - lint
+      - types
+      - unit_tests
+      - security
+      - docker_build
+      - compose_smoke
+      - terraform_validate
+      - ansible_syntax
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      - name: ❌ Notify on Failure with Button
         run: |
-          # skip if secrets not set
-          if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then
-            echo "No Telegram secrets, skipping notify."; exit 0; fi
-          ICON=$([ "$STATUS" = "success" ] && echo "✅" || echo "❌")
-          TEXT="${ICON} CI (${BRANCH}): ${STATUS^^}"
-          read -r -d '' PAYLOAD <<'JSON' || true
-          {"chat_id":"__CHAT__","text":"__TEXT__",
-            "reply_markup":{"inline_keyboard":[[{"text":"View CI logs","url":"__URL__"}]]}}
-            JSON
-                      PAYLOAD="${PAYLOAD/__CHAT__/${TG_CHAT}}"
-                      PAYLOAD="${PAYLOAD/__TEXT__/${TEXT}}"
-                      PAYLOAD="${PAYLOAD/__URL__/${RUN_URL}}"
-                      curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
-                          -H 'Content-Type: application/json' -d "$PAYLOAD" >/dev/null
-
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}/sendMessage" \
+          -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+          -d text="🚨 CI (${ { github.ref_name } }) FAIL եղավ ❌\n🔎 Բացիր GitHub Actions-ի լոգերը👇" \
+          -d parse_mode="HTML" \
+          -d reply_markup='{
+                "inline_keyboard": [[
+                    {
+                        "text": "📄 View CI logs",
+                        "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                ]]
+              }'
