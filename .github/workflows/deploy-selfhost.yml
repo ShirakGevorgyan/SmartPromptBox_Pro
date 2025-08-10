@@ -21,13 +21,16 @@ jobs:
           docker version || true
           docker compose version || docker-compose --version || true
 
-      - name: Write .env (if not present)
+      - name: Write .env if missing (printf, no heredoc)
         run: |
           if [ ! -f .env ]; then
-            cat > .env << 'EOF'
-            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-            TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
-            EOF
+            : > .env
+            printf "OPENAI_API_KEY=%s\n" "${{ secrets.OPENAI_API_KEY }}" >> .env
+            printf "TELEGRAM_BOT_TOKEN=%s\n" "${{ secrets.TELEGRAM_BOT_TOKEN }}" >> .env
+            printf "GENIUS_ACCESS_TOKEN=%s\n" "${{ secrets.GENIUS_ACCESS_TOKEN }}" >> .env
+            printf "TELEGRAM_CHAT_ID=%s\n" "${{ secrets.TELEGRAM_CHAT_ID }}" >> .env
+            printf "DATABASE_URL=%s\n" "${{ secrets.DATABASE_URL }}" >> .env
+            sed -E 's/(=).+/\1*****/' .env
           fi
 
       - name: Compose up (prod)
