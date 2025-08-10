@@ -1,27 +1,22 @@
-version: "3.9"
-
 services:
   app:
     build:
       context: ../../
       dockerfile: devops/docker/app/Dockerfile
     image: smartpromptbox_pro:prod
+
+    env_file:
+      - ../../.env
     environment:
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-test-key}
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-test-token}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      GENIUS_ACCESS_TOKEN: ${GENIUS_ACCESS_TOKEN}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
+
     healthcheck:
       test: ["CMD", "python", "-c", "import app; print('ok')"]
       interval: 10s
       timeout: 3s
       retries: 3
-    restart: unless-stopped
 
-  # Ընտրովի՝ միացնես, եթե Terraform/LocalStack էլ ուզում ես ցույց տալ
-  # localstack:
-  #   image: localstack/localstack:stable
-  #   environment:
-  #     - SERVICES=s3,sts
-  #     - EDGE_PORT=4566
-  #   ports:
-  #     - "4566:4566"
-  #   restart: unless-stopped
+    restart: unless-stopped
