@@ -18,9 +18,6 @@ app/data/logs/
 
 .pytest_cache
 
-images
-
-
 *.sqlite
 
 *.db
