@@ -9,6 +9,10 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.types import Message
 from aiogram.filters import CommandStart
+from app.telegram_bot.handlers import misc_commands
+from app.telegram_bot.middlewares.logging import LogUpdate
+from app.telegram_bot.middlewares.errors import CatchAllErrors
+
 from dotenv import load_dotenv
 
 from app.telegram_bot.handlers import (
@@ -38,12 +42,19 @@ async def start_command_handler(message: Message):
 def build_dispatcher() -> Dispatcher:
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
+    
+    dp.message.middleware(CatchAllErrors())
+    dp.message.middleware(LogUpdate())
+    
     dp.include_router(gpt_memory_chat_handler.router)
     dp.include_router(mood_handler.router)
     dp.include_router(random_songs_handler.router)
     dp.include_router(series_menu_handler.router)
     dp.include_router(movie_menu_handler.router)
     dp.include_router(img_handler.router)
+    
+    dp.include_router(misc_commands.router)
+    
     dp.message.register(start_command_handler, CommandStart())
     return dp
 
