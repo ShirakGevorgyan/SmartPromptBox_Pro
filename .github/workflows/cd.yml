@@ -20,33 +20,17 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     env:
+      REPO_DIR: repo
       PROJECT_PROD: smartpromptbox_prod
       PROJECT_DEV:  smartpromptbox_dev
-      COMPOSE_PROD: devops/compose/docker-compose.prod.yml
-      COMPOSE_DEV:  devops/compose/docker-compose.dev.yml
 
     steps:
-      - name: Pre-clean root-owned leftovers
-        run: |
-          set -euxo pipefail
-          REPO="${GITHUB_REPOSITORY##*/}"
-          CANDIDATES=(
-            "${RUNNER_WORKSPACE}/${REPO}/${REPO}"
-            "${RUNNER_WORKSPACE}/${REPO}"
-          )
-          for BASE in "${CANDIDATES[@]}"; do
-            [ -d "$BASE" ] || continue
-            sudo rm -f  "$BASE/db/memory.db" || true
-            sudo rm -rf "$BASE/devops/ansible/runtime" || true
-            sudo rm -f  "$BASE/.env" "$BASE/cd-logs.txt" || true
-            sudo chown -R "$USER:$USER" "$BASE" || true
-          done
-
-      - name: Checkout
+      - name: Checkout (to subdir)
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
           clean: false
+          path: ${{ env.REPO_DIR }}
 
       - name: Ensure prerequisites (Ansible, Docker)
         run: |
@@ -57,27 +41,30 @@ jobs:
           if ! command -v docker >/dev/null 2>&1; then
             sudo apt-get update -y && sudo apt-get install -y docker.io
           fi
-          # Docker Compose v2 (plugin), ոչ թե հին docker-compose v1
+          # Docker Compose v2 plugin
           if ! docker compose version >/dev/null 2>&1; then
             sudo apt-get install -y docker-compose-plugin
           fi
 
       - name: Ensure dev stack is not running (optional)
+        working-directory: ${{ env.REPO_DIR }}
         run: |
-          sudo docker compose -p "$PROJECT_DEV" -f "$COMPOSE_DEV" down --remove-orphans || true
+          sudo docker compose -p "$PROJECT_DEV" -f devops/compose/docker-compose.dev.yml down --remove-orphans || true
 
-      - name: Write fresh .env from Secrets (overwrite each run)
+      - name: Write fresh .env from Secrets (into repo/)
+        working-directory: ${{ env.REPO_DIR }}
         run: |
           : > .env
-          printf "OPENAI_API_KEY=%s\n"                   "${{ secrets.OPENAI_API_KEY }}"                   >> .env
-          printf "TELEGRAM_BOT_TOKEN=%s\n"               "${{ secrets.TELEGRAM_BOT_TOKEN }}"               >> .env
-          printf "GENIUS_ACCESS_TOKEN=%s\n"              "${{ secrets.GENIUS_ACCESS_TOKEN }}"              >> .env
-          printf "TELEGRAM_CHAT_ID=%s\n"                 "${{ secrets.TELEGRAM_CHAT_ID }}"                 >> .env
-          printf "DATABASE_URL=%s\n"                     "${{ secrets.DATABASE_URL }}"                     >> .env
+          printf "OPENAI_API_KEY=%s\n"       "${{ secrets.OPENAI_API_KEY }}"       >> .env
+          printf "TELEGRAM_BOT_TOKEN=%s\n"   "${{ secrets.TELEGRAM_BOT_TOKEN }}"   >> .env
+          printf "GENIUS_ACCESS_TOKEN=%s\n"  "${{ secrets.GENIUS_ACCESS_TOKEN }}"  >> .env
+          printf "TELEGRAM_CHAT_ID=%s\n"     "${{ secrets.TELEGRAM_CHAT_ID }}"     >> .env
+          printf "DATABASE_URL=%s\n"         "${{ secrets.DATABASE_URL }}"         >> .env
+          printf "LOG_LEVEL=%s\n"            "INFO"                                >> .env
           sed -E 's/(=).+/\1*****/' .env || true
 
       - name: Create runtime inventory (localhost)
-        working-directory: devops/ansible
+        working-directory: ${{ env.REPO_DIR }}/devops/ansible
         run: |
           mkdir -p runtime
           cat > runtime/hosts.ini <<'EOF'
@@ -86,7 +73,7 @@ jobs:
           EOF
 
       - name: Create minimal runtime playbook
-        working-directory: devops/ansible
+        working-directory: ${{ env.REPO_DIR }}/devops/ansible
         run: |
           cat > runtime/deploy_local.yml <<'YAML'
           ---
@@ -94,7 +81,7 @@ jobs:
             hosts: target
             gather_facts: false
             vars:
-              project_dir: "{{ lookup('env','GITHUB_WORKSPACE') | default(ansible_env.PWD, true) }}"
+              project_dir: "{{ lookup('env','GITHUB_WORKSPACE') }}/repo"
               compose_file: "{{ project_dir }}/devops/compose/docker-compose.prod.yml"
               project_name: "smartpromptbox_prod"
             tasks:
@@ -106,14 +93,15 @@ jobs:
           YAML
 
       - name: Deploy (Ansible → docker compose up)
-        working-directory: devops/ansible
+        working-directory: ${{ env.REPO_DIR }}/devops/ansible
         run: ansible-playbook -i runtime/hosts.ini runtime/deploy_local.yml
 
       - name: Wait for health=healthy
+        working-directory: ${{ env.REPO_DIR }}
         run: |
           set -e
-          sudo docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" ps
-          CID="$(sudo docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" ps -q app || true)"
+          sudo docker compose -p "$PROJECT_PROD" -f devops/compose/docker-compose.prod.yml ps
+          CID="$(sudo docker compose -p "$PROJECT_PROD" -f devops/compose/docker-compose.prod.yml ps -q app || true)"
           if [ -z "$CID" ]; then
             echo "Container not found"; exit 1
           fi
@@ -128,8 +116,9 @@ jobs:
 
       - name: Tail logs (masked) + artifact
         id: logs
+        working-directory: ${{ env.REPO_DIR }}
         run: |
-          CID="$(sudo docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" ps -q app || true)"
+          CID="$(sudo docker compose -p "$PROJECT_PROD" -f devops/compose/docker-compose.prod.yml ps -q app || true)"
           [ -n "$CID" ] || exit 0
           sudo docker logs --tail=200 "$CID" 2>&1 \
             | sed -E 's/(sk-[A-Za-z0-9_-]+)/sk-*****/g' \
@@ -141,7 +130,7 @@ jobs:
         if: ${{ always() && steps.logs.outputs.logfile != '' }}
         with:
           name: cd-logs
-          path: cd-logs.txt
+          path: ${{ env.REPO_DIR }}/cd-logs.txt
           if-no-files-found: ignore
 
       - name: 📤 CD Notify (Success)

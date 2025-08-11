@@ -1,7 +1,7 @@
 # SmartPromptBox Pro
 
-[![CI](https://github.com/<your-username>/SmartPromptBox_Pro/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/<your-username>/SmartPromptBox_Pro/actions/workflows/ci.yml)
-[![CD](https://github.com/<your-username>/SmartPromptBox_Pro/actions/workflows/cd.yml/badge.svg?branch=main)](https://github.com/<your-username>/SmartPromptBox_Pro/actions/workflows/cd.yml)
+[![CI](https://github.com/ShirakGevorgyan/SmartPromptBox_Pro/blob/main/.github/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ShirakGevorgyan/SmartPromptBox_Pro/blob/main/.github/workflows/ci.yml)
+[![CD](https://github.com/ShirakGevorgyan/SmartPromptBox_Pro/blob/main/.github/workflows/cd.yml/badge.svg?branch=main)](https://github.com/ShirakGevorgyan/SmartPromptBox_Pro/blob/main/.github/workflows/cd.yml)
 [![Docker](https://img.shields.io/badge/Docker-ready-informational)](#docker--compose)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](#license)
 
