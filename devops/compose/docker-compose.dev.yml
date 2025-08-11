@@ -4,7 +4,6 @@ services:
       context: ../../
       dockerfile: devops/docker/app/Dockerfile.dev
     container_name: smartbox-app
-
     env_file:
       - ../../.env
     environment:
@@ -12,21 +11,15 @@ services:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11}
       DATABASE_URL: ${DATABASE_URL:-sqlite:///db/memory.db}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
-
     volumes:
       - ../../:/app:cached
       - db_data:/app/db
-
-    user: "${UID:-1000}:${GID:-1000}"
-
     command: python3 -m app.telegram_bot.bot
-
     healthcheck:
       test: ["CMD", "python", "-c", "import app; print('ok')"]
       interval: 10s
       timeout: 3s
       retries: 3
-
     restart: unless-stopped
 
 volumes:
