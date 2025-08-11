@@ -1,12 +1,12 @@
-
 services:
-  smartbox-app:
+  app:
     build:
       context: ../../
       dockerfile: devops/docker/app/Dockerfile.dev
     container_name: smartbox-app
 
-    env_file: ../../.env
+    env_file:
+      - ../../.env
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-test-key}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11}
@@ -14,7 +14,10 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
 
     volumes:
-      - ../../:/app
+      - ../../:/app:cached
+      - db_data:/app/db
+
+    user: "${UID:-1000}:${GID:-1000}"
 
     command: python3 -m app.telegram_bot.bot
 
@@ -25,3 +28,6 @@ services:
       retries: 3
 
     restart: unless-stopped
+
+volumes:
+  db_data: {}

@@ -19,22 +19,22 @@ jobs:
     runs-on: [self-hosted, Linux, X64]
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
-    steps:
-      - name: Pre-clean root-owned leftovers (fast, safe)
-        run: |
-          set -e
-          REPO="${GITHUB_REPOSITORY*/}"
-          BASE="${RUNNER_WORKSPACE}/${REPO}/${REPO}"
-          sudo rm -f  "${BASE}/db/memory.db" || true
-          sudo rm -rf "${BASE}/devops/ansible/runtime" || true
-          sudo rm -f  "${BASE}/.env" "${BASE}/cd-logs.txt" || true
-          sudo chown -R "$USER:$USER" "${BASE}" || true
+    env:
+      PROJECT_PROD: smartpromptbox_prod
+      PROJECT_DEV:  smartpromptbox_dev
+      COMPOSE_PROD: devops/compose/docker-compose.prod.yml
+      COMPOSE_DEV:  devops/compose/docker-compose.dev.yml
 
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-          clean: false   
+          clean: false
+
+      - name: Ensure dev stack is not running (optional)
+        run: |
+          docker compose -p "$PROJECT_DEV" -f "$COMPOSE_DEV" down --remove-orphans || true
 
       - name: Ensure prerequisites (Ansible, Docker)
         run: |
@@ -79,10 +79,11 @@ jobs:
             vars:
               project_dir: "{{ lookup('env','GITHUB_WORKSPACE') | default(ansible_env.PWD, true) }}"
               compose_file: "{{ project_dir }}/devops/compose/docker-compose.prod.yml"
+              project_name: "smartpromptbox_prod"
             tasks:
               - name: docker compose up -d --build (prod)
                 become: true
-                command: docker compose -f "{{ compose_file }}" up -d --build
+                command: docker compose -p "{{ project_name }}" -f "{{ compose_file }}" up -d --build --remove-orphans
                 args:
                   chdir: "{{ project_dir }}"
           YAML
@@ -92,12 +93,12 @@ jobs:
         run: ansible-playbook -i runtime/hosts.ini runtime/deploy_local.yml
 
       - name: Wait for health=healthy
-        env:
-          COMPOSE_FILE: devops/compose/docker-compose.prod.yml
         run: |
           set -e
-          CID="$(docker compose ps -q app)"
-          if [ -z "$CID" ]; then echo "Container not found"; docker compose ps; exit 1; fi
+          CID="$(docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" ps -q app || true)"
+          if [ -z "$CID" ]; then
+            echo "Container not found"; docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" ps; exit 1
+          fi
           echo "Waiting for healthy: $CID"
           for i in {1..60}; do
             HS="$(docker inspect -f '{{.State.Health.Status}}' "$CID" 2>/dev/null || echo 'unknown')"
@@ -109,10 +110,8 @@ jobs:
 
       - name: Tail logs (masked) + artifact
         id: logs
-        env:
-          COMPOSE_FILE: devops/compose/docker-compose.prod.yml
         run: |
-          CID="$(docker compose ps -q app)"
+          CID="$(docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" ps -q app || true)"
           [ -n "$CID" ] || exit 0
           docker logs --tail=200 "$CID" 2>&1 \
             | sed -E 's/(sk-[A-Za-z0-9_-]+)/sk-*****/g' \
