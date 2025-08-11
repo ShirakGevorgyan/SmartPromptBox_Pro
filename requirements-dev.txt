@@ -2,4 +2,5 @@ pytest==8.4.1
 pytest-asyncio==1.1.0
 ruff==0.0.263
 mypy==1.17.1
+pytest-cov==5.0.0
 pip-audit
