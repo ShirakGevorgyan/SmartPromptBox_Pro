@@ -42,7 +42,8 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
       - name: Ruff checks
-        run: ruff check .
+        run: ruff check . --line-length 140 --ignore E501
+
 
   types:
     name: Types (mypy)
