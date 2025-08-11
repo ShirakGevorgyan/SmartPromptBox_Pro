@@ -31,7 +31,6 @@ async def about(m: Message):
             f"🐍 Python: <code>{platform.python_version()}</code>\n"
             f"📚 aiogram: <code>{aiogram.__version__}</code>\n"
         ),
-        parse_mode="HTML",
     )
 @router.message(Command("help"))
 async def help_cmd(m: Message):
@@ -48,6 +47,5 @@ async def help_cmd(m: Message):
             "/help · /about · /ping · /id\n\n"
             "<i>Հուշում:</i> Միշտ կարող ես վերադառնալ մենյու՝ «⤴️ Գլխավոր մենյու» կոճակով։"
         ),
-        parse_mode="HTML",
     )
 

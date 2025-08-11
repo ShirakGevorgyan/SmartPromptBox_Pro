@@ -45,7 +45,6 @@ async def start_command_handler(message: Message):
             "• 🎨 Նկար գեներացիա — գրիր հուշում, գեներացնենք\n"
             "• ⭐ Խոսիր ինձ հետ — ազատ չաթ"
         ),
-        parse_mode="HTML",
         reply_markup=main_menu,
     )
 
