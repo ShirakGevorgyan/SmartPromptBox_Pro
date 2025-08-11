@@ -20,19 +20,21 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      # ---- fix EACCES: wipe previous workspace (root-owned ./db etc.) before checkout
-      - name: Pre-clean previous workspace (fix EACCES)
+      - name: Pre-clean root-owned leftovers (fast, safe)
         run: |
           set -e
-          if [ -n "${GITHUB_WORKSPACE:-}" ] && [ -d "$GITHUB_WORKSPACE" ]; then
-            sudo rm -rf "$GITHUB_WORKSPACE"
-          fi
+          REPO="${GITHUB_REPOSITORY*/}"
+          BASE="${RUNNER_WORKSPACE}/${REPO}/${REPO}"
+          sudo rm -f  "${BASE}/db/memory.db" || true
+          sudo rm -rf "${BASE}/devops/ansible/runtime" || true
+          sudo rm -f  "${BASE}/.env" "${BASE}/cd-logs.txt" || true
+          sudo chown -R "$USER:$USER" "${BASE}" || true
 
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-          clean: false  # we already pre-cleaned with sudo
+          clean: false   
 
       - name: Ensure prerequisites (Ansible, Docker)
         run: |
@@ -44,7 +46,6 @@ jobs:
             sudo apt-get update -y && sudo apt-get install -y docker.io
           fi
           if ! docker compose version >/dev/null 2>&1; then
-            # fallback plugin/legacy compose
             sudo apt-get install -y docker-compose
           fi
 
@@ -56,7 +57,6 @@ jobs:
           printf "GENIUS_ACCESS_TOKEN=%s\n"              "${{ secrets.GENIUS_ACCESS_TOKEN }}"              >> .env
           printf "TELEGRAM_CHAT_ID=%s\n"                 "${{ secrets.TELEGRAM_CHAT_ID }}"                 >> .env
           printf "DATABASE_URL=%s\n"                     "${{ secrets.DATABASE_URL }}"                     >> .env
-          # mask preview (doesn't modify the file)
           sed -E 's/(=).+/\1*****/' .env || true
 
       - name: Create runtime inventory (localhost)
@@ -67,7 +67,6 @@ jobs:
           [target]
           127.0.0.1 ansible_connection=local
           EOF
-          cat runtime/hosts.ini
 
       - name: Create minimal runtime playbook
         working-directory: devops/ansible
@@ -87,7 +86,6 @@ jobs:
                 args:
                   chdir: "{{ project_dir }}"
           YAML
-          cat runtime/deploy_local.yml
 
       - name: Deploy (Ansible → docker compose up)
         working-directory: devops/ansible
@@ -99,9 +97,7 @@ jobs:
         run: |
           set -e
           CID="$(docker compose ps -q app)"
-          if [ -z "$CID" ]; then
-            echo "Container not found"; docker compose ps; exit 1
-          fi
+          if [ -z "$CID" ]; then echo "Container not found"; docker compose ps; exit 1; fi
           echo "Waiting for healthy: $CID"
           for i in {1..60}; do
             HS="$(docker inspect -f '{{.State.Health.Status}}' "$CID" 2>/dev/null || echo 'unknown')"
@@ -109,7 +105,7 @@ jobs:
             [ "$HS" = "healthy" ] && exit 0
             sleep 2
           done
-          echo "⏱️ Timeout waiting for healthy"; docker logs --tail=200 "$CID" || true; exit 1
+          echo "Timeout waiting for healthy"; docker logs --tail=200 "$CID" || true; exit 1
 
       - name: Tail logs (masked) + artifact
         id: logs
