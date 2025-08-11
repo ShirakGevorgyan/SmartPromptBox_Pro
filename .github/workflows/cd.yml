@@ -113,22 +113,6 @@ jobs:
 
       - name: 📤 CD Notify (Success)
         if: success()
-        run: |
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}/sendMessage" \
-          -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-          -d text="🚀 CD (${ { github.ref_name } }): SUCCESS ✅\n🤖 Bot-ը RUNNING է (healthy)\n🔗 Բացիր CD logs👇" \
-          -d parse_mode="HTML" \
-          -d reply_markup='{
-                "inline_keyboard": [[
-                    {
-                        "text": "📄 View CD logs",
-                        "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                    }
-                ]]
-              }'
-
-      - name: 📤 CD Notify (Success)
-        if: success()
         env:
           TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN_TEST_NOTIFIER }}
           TG_CHAT:  ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -136,11 +120,13 @@ jobs:
           BRANCH:   ${{ github.ref_name }}
         run: |
           if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then echo "No TG secrets; skip"; exit 0; fi
-          curl -s -X POST "https://api.telegram.org/bot$TG_TOKEN/sendMessage" \
-            -d chat_id="$TG_CHAT" \
-            -d parse_mode="HTML" \
-            -d text="🟢 CD (<b>${BRANCH}</b>) հաջող ավարտվեց ✅%0A🤖 Bot-ը <b>RUNNING</b> է (healthy)" \
-            -d reply_markup='{"inline_keyboard":[[{"text":"📄 View CD logs","url":"'"$RUN_URL"'"}]]}'
+          TEXT="🚀 CD (${BRANCH}): SUCCESS ✅
+          🤖 Bot-ը RUNNING է (healthy)"
+          curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+            --data-urlencode chat_id="${TG_CHAT}" \
+            --data-urlencode parse_mode="HTML" \
+            --data-urlencode text="${TEXT}" \
+            --data-urlencode reply_markup='{"inline_keyboard":[[{"text":"📄 View CD logs","url":"'"${RUN_URL}"'"}]]}'
 
       - name: ❌ CD Notify (Failure)
         if: failure()
@@ -151,8 +137,9 @@ jobs:
           BRANCH:   ${{ github.ref_name }}
         run: |
           if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then echo "No TG secrets; skip"; exit 0; fi
-          curl -s -X POST "https://api.telegram.org/bot$TG_TOKEN/sendMessage" \
-            -d chat_id="$TG_CHAT" \
-            -d parse_mode="HTML" \
-            -d text="🚨 CD (<b>${BRANCH}</b>) FAILED ❌" \
-            -d reply_markup='{"inline_keyboard":[[{"text":"📄 View CD logs","url":"'"$RUN_URL"'"}]]}'
+          TEXT="🔥 CD (${BRANCH}): FAILURE ❌"
+          curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+            --data-urlencode chat_id="${TG_CHAT}" \
+            --data-urlencode parse_mode="HTML" \
+            --data-urlencode text="${TEXT}" \
+            --data-urlencode reply_markup='{"inline_keyboard":[[{"text":"📄 View CD logs","url":"'"${RUN_URL}"'"}]]}'
