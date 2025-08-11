@@ -8,6 +8,7 @@ log = logging.getLogger(__name__)
 class LogUpdate(BaseMiddleware):
     async def __call__(self, handler, event: TelegramObject, data: dict):
         t0 = time.perf_counter()
+        req_id = data.get("req_id")
 
         chat_id = None
         user_id = None
@@ -28,6 +29,6 @@ class LogUpdate(BaseMiddleware):
         finally:
             dt_ms = (time.perf_counter() - t0) * 1000
             log.info(
-                "handled=%s chat_id=%s user_id=%s dt_ms=%.1f preview=%r",
-                type(event).__name__, chat_id, user_id, dt_ms, preview,
+                "req_id=%s handled=%s chat_id=%s user_id=%s dt_ms=%.1f preview=%r",
+                req_id, type(event).__name__, chat_id, user_id, dt_ms, preview,
             )

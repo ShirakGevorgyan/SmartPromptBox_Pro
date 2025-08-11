@@ -207,7 +207,7 @@ def format_series_text(chunk: str) -> str:
 
 
 async def send_series_blocks(text: str, message: Message):
-    series_chunks = split_movies(text)  # ✅ OK այսպես պահել
+    series_chunks = split_movies(text)
 
     for chunk in series_chunks:
         trailer_url, watch_url = extract_links_from_text(chunk)

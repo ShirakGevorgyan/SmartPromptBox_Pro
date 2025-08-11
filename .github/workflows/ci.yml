@@ -65,6 +65,8 @@ jobs:
           if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
       - name: Run mypy
         run: mypy --config-file mypy.ini --explicit-package-bases app
+      - name: Init DB (sqlite)
+        run: python -m app.scripts.init_db
 
   unit_tests:
     name: Unit tests + Coverage

@@ -20,19 +20,6 @@ class SongStates(StatesGroup):
     waiting_for_artist = State()
 
 
-# GENRE_MAP = {
-#     "🎸 Ռոք": "Rock",
-#     "🎹 Ջազ": "Jazz",
-#     "🎤 Ռեփ": "Rap",
-#     "🎶 Փոփ": "Pop",
-#     "💃 Լատինո": "Latino",
-#     "🎻 Կլասիկ": "Classical",
-#     "🏞 Ֆոլք": "Folk",
-#     "🎼 Էլեկտրոնային": "Electronic",
-#     "🔥 Մետալ": "Metal",
-#     "🎷 Ֆանկ": "Funk",
-# }
-
 @router.message(F.text == "🔀 Պատահական երգ")
 async def random_song_handler(message: Message, state: FSMContext):
     await message.answer("🎲 Սպասիր, գտնում եմ պատահական երգ…")
@@ -88,8 +75,6 @@ async def ask_for_genre(message: Message, state: FSMContext):
 @router.message(SongStates.waiting_for_genre)
 async def handle_genre_input(message: Message, state: FSMContext):
     genre = message.text.strip("🎸🎹🎤🎶💃🎻🏞🎼🔥🎷 ")
-    # selected = message.text.strip()
-    # genre = GENRE_MAP.get(selected)
 
     if not genre:
         await message.answer("❗️ Չճանաչված ժանր։ Փորձիր նորից ընտրել ցանկից։", reply_markup=genre_menu)

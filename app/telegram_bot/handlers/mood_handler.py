@@ -19,7 +19,6 @@ async def mood_main(message: Message, state: FSMContext):
     await state.clear()
     await message.answer("Ընտրիր քո տրամադրությունը 👇", reply_markup=mood_menu)
 
-# ✅ Տրամադրության ընտրություն
 @router.message(F.text.in_([
     "😢 Տխուր եմ", "🥰 Սիրահարված եմ",
     "😤 Զայրացած եմ", "😐 Ուղղակի լավ եմ",

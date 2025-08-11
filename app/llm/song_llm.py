@@ -2,7 +2,7 @@ import os
 import ast
 from openai import OpenAI
 from typing import List, Dict
-from app.llm.mood_inferencer import ask_gpt, clean_gpt_code_block, parse_fallback_list  # 👈 սա պետք է ունենաս
+from app.llm.mood_inferencer import ask_gpt, clean_gpt_code_block, parse_fallback_list
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 

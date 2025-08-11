@@ -10,11 +10,9 @@ class CatchAllErrors(BaseMiddleware):
             return await handler(event, data)
         except Exception as e:
             log.exception("handler_error: %r", e)
-            # Փափուկ user-facing պատասխան (ըստ ցանկության)
             if isinstance(event, Message):
                 try:
                     await event.answer("Ուֆ, մի բան սխալվեց 🤔 Փորձիր նորից մի քիչ հետո։")
                 except Exception:
                     pass
-            # չթողնենք, որ սխալը փլի polling-ը
             return None
