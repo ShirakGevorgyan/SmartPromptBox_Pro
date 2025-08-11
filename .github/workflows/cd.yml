@@ -27,7 +27,6 @@ jobs:
       COMPOSE_DOCKER_CLI_BUILD: "1"
 
     steps:
-      # Avoid the EACCES loop: do NOT use sudo here
       - name: Pre-clean leftovers (no sudo; non-blocking)
         run: |
           set -euo pipefail
