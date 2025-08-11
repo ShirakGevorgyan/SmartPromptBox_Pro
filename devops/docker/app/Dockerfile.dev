@@ -6,15 +6,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# կախվածությունները առանձին՝ cache-ի համար
 COPY requirements*.txt ./
 RUN python -m pip install --upgrade pip && \
     if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-# CI/dev գործիքներ
 RUN pip install --no-cache-dir pytest pytest-cov ruff mypy pip-audit
 
-# Ավելացնենք ամբողջ կոդը
 COPY . .
 
 CMD ["python", "-c", "import app; print('import ok')"]

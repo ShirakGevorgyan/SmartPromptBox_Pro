@@ -14,7 +14,6 @@ COPY app/ ./app/
 COPY tests/ ./tests/
 COPY devops/ ./devops/
 
-
 RUN mkdir -p db
 
 CMD ["python3", "-m", "app.telegram_bot.bot"]

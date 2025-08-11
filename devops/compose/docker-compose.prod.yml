@@ -4,6 +4,9 @@ services:
       context: ../../
       dockerfile: devops/docker/app/Dockerfile
     image: smartpromptbox_pro:prod
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
 
     env_file:
       - ../../.env

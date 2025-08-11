@@ -1,5 +1,5 @@
-.en
 __pycache__/
+
 *.py[cod]
 
 .env
@@ -20,10 +20,14 @@ app/data/logs/
 
 images
 
-# **/__init__.py
 
 *.sqlite
 
 *.db
 
 actions-runner/
+
+tests/db/
+tests/logs/
+tests/performance/*.png
+tests/performance/*.log
