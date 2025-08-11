@@ -1,4 +1,5 @@
 name: CD (self-hosted)
+
 on:
   workflow_run:
     workflows: ["CI (Core)"]
@@ -19,8 +20,19 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
+      # ---- fix EACCES: wipe previous workspace (root-owned ./db etc.) before checkout
+      - name: Pre-clean previous workspace (fix EACCES)
+        run: |
+          set -e
+          if [ -n "${GITHUB_WORKSPACE:-}" ] && [ -d "$GITHUB_WORKSPACE" ]; then
+            sudo rm -rf "$GITHUB_WORKSPACE"
+          fi
+
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          clean: false  # we already pre-cleaned with sudo
 
       - name: Ensure prerequisites (Ansible, Docker)
         run: |
@@ -30,21 +42,22 @@ jobs:
           fi
           if ! command -v docker >/dev/null 2>&1; then
             sudo apt-get update -y && sudo apt-get install -y docker.io
-            sudo usermod -aG docker $USER || true
           fi
           if ! docker compose version >/dev/null 2>&1; then
+            # fallback plugin/legacy compose
             sudo apt-get install -y docker-compose
           fi
 
       - name: Write fresh .env from Secrets (overwrite each run)
         run: |
           : > .env
-          printf "OPENAI_API_KEY=%s\n" "${{ secrets.OPENAI_API_KEY }}" >> .env
-          printf "TELEGRAM_BOT_TOKEN=%s\n" "${{ secrets.TELEGRAM_BOT_TOKEN }}" >> .env
-          printf "GENIUS_ACCESS_TOKEN=%s\n" "${{ secrets.GENIUS_ACCESS_TOKEN }}" >> .env
-          printf "TELEGRAM_CHAT_ID=%s\n" "${{ secrets.TELEGRAM_CHAT_ID }}" >> .env
-          printf "DATABASE_URL=%s\n" "${{ secrets.DATABASE_URL }}" >> .env
-          sed -E 's/(=).+/\1*****/' .env
+          printf "OPENAI_API_KEY=%s\n"                   "${{ secrets.OPENAI_API_KEY }}"                   >> .env
+          printf "TELEGRAM_BOT_TOKEN=%s\n"               "${{ secrets.TELEGRAM_BOT_TOKEN }}"               >> .env
+          printf "GENIUS_ACCESS_TOKEN=%s\n"              "${{ secrets.GENIUS_ACCESS_TOKEN }}"              >> .env
+          printf "TELEGRAM_CHAT_ID=%s\n"                 "${{ secrets.TELEGRAM_CHAT_ID }}"                 >> .env
+          printf "DATABASE_URL=%s\n"                     "${{ secrets.DATABASE_URL }}"                     >> .env
+          # mask preview (doesn't modify the file)
+          sed -E 's/(=).+/\1*****/' .env || true
 
       - name: Create runtime inventory (localhost)
         working-directory: devops/ansible
@@ -69,8 +82,10 @@ jobs:
               compose_file: "{{ project_dir }}/devops/compose/docker-compose.prod.yml"
             tasks:
               - name: docker compose up -d --build (prod)
+                become: true
                 command: docker compose -f "{{ compose_file }}" up -d --build
-                args: { chdir: "{{ project_dir }}" }
+                args:
+                  chdir: "{{ project_dir }}"
           YAML
           cat runtime/deploy_local.yml
 
@@ -80,11 +95,13 @@ jobs:
 
       - name: Wait for health=healthy
         env:
-          SVC: app
+          COMPOSE_FILE: devops/compose/docker-compose.prod.yml
         run: |
           set -e
-          CID="$(docker ps --format '{{.ID}}\t{{.Names}}' | awk -v s="$SVC" '$2 ~ "-"s"-" {print $1; exit}')"
-          if [ -z "$CID" ]; then echo "Container not found"; exit 1; fi
+          CID="$(docker compose ps -q app)"
+          if [ -z "$CID" ]; then
+            echo "Container not found"; docker compose ps; exit 1
+          fi
           echo "Waiting for healthy: $CID"
           for i in {1..60}; do
             HS="$(docker inspect -f '{{.State.Health.Status}}' "$CID" 2>/dev/null || echo 'unknown')"
@@ -92,18 +109,21 @@ jobs:
             [ "$HS" = "healthy" ] && exit 0
             sleep 2
           done
-          echo "Timeout waiting for healthy"; docker logs --tail=80 "$CID"; exit 1
+          echo "⏱️ Timeout waiting for healthy"; docker logs --tail=200 "$CID" || true; exit 1
 
       - name: Tail logs (masked) + artifact
         id: logs
+        env:
+          COMPOSE_FILE: devops/compose/docker-compose.prod.yml
         run: |
-          CID="$(docker ps --format '{{.ID}}\t{{.Names}}' | awk '$2 ~ /-app-/ {print $1; exit}')"
+          CID="$(docker compose ps -q app)"
           [ -n "$CID" ] || exit 0
-          docker logs --tail=80 "$CID" 2>&1 \
+          docker logs --tail=200 "$CID" 2>&1 \
             | sed -E 's/(sk-[A-Za-z0-9_-]+)/sk-*****/g' \
             | sed -E 's/([0-9]{9,}:[A-Za-z0-9_-]{20,})/**token**/g' \
             | tee cd-logs.txt
           echo "logfile=cd-logs.txt" >> $GITHUB_OUTPUT
+
       - uses: actions/upload-artifact@v4
         if: ${{ always() && steps.logs.outputs.logfile != '' }}
         with:
