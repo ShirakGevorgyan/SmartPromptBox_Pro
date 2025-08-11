@@ -27,22 +27,19 @@ jobs:
       COMPOSE_DOCKER_CLI_BUILD: "1"
 
     steps:
-      # --- FAST pre-clean: only what caused EACCES before ---
-      - name: Pre-clean root-owned leftovers (fast)
+      # Avoid the EACCES loop: do NOT use sudo here
+      - name: Pre-clean leftovers (no sudo; non-blocking)
         run: |
           set -euo pipefail
-          REPO="${GITHUB_REPOSITORY##*/}"
-          # workspace candidates
-          for BASE in "${RUNNER_WORKSPACE}/${REPO}/${REPO}" "${RUNNER_WORKSPACE}/${REPO}"; do
-            [ -d "$BASE" ] || continue
-            # only db/ and tiny files – no recursive chown on whole repo
-            sudo rm -f  "$BASE/db/memory.db" 2>/dev/null || true
-            if [ -d "$BASE/db" ]; then sudo chown -R "$USER:$USER" "$BASE/db" || true; fi
-            sudo rm -rf "$BASE/devops/ansible/runtime" 2>/dev/null || true
-            sudo rm -f  "$BASE/.env" "$BASE/cd-logs.txt" 2>/dev/null || true
-          done
+          cd "$GITHUB_WORKSPACE"
+          rm -f db/memory.db 2>/dev/null || true
+          rm -rf devops/ansible/runtime 2>/dev/null || true
+          rm -f .env cd-logs.txt 2>/dev/null || true
+          echo "Workspace: $GITHUB_WORKSPACE"
+          ls -la || true
+          ls -la db 2>/dev/null || true
 
-      - name: Checkout
+      - name: Checkout (do not clean workspace)
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
@@ -54,14 +51,18 @@ jobs:
           docker compose version
           id
 
+      - name: Stop previous prod stack (if any)
+        run: docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" down --remove-orphans || true
+
       - name: Write fresh .env from Secrets
         run: |
           : > .env
-          printf "OPENAI_API_KEY=%s\n"      "${{ secrets.OPENAI_API_KEY }}"      >> .env
-          printf "TELEGRAM_BOT_TOKEN=%s\n"  "${{ secrets.TELEGRAM_BOT_TOKEN }}"  >> .env
-          printf "GENIUS_ACCESS_TOKEN=%s\n" "${{ secrets.GENIUS_ACCESS_TOKEN }}" >> .env
-          printf "TELEGRAM_CHAT_ID=%s\n"    "${{ secrets.TELEGRAM_CHAT_ID }}"    >> .env
-          printf "DATABASE_URL=%s\n"        "${{ secrets.DATABASE_URL }}"        >> .env
+          printf "OPENAI_API_KEY=%s\n"        "${{ secrets.OPENAI_API_KEY }}"        >> .env
+          printf "TELEGRAM_BOT_TOKEN=%s\n"    "${{ secrets.TELEGRAM_BOT_TOKEN }}"    >> .env
+          printf "GENIUS_ACCESS_TOKEN=%s\n"   "${{ secrets.GENIUS_ACCESS_TOKEN }}"   >> .env
+          printf "TELEGRAM_CHAT_ID=%s\n"      "${{ secrets.TELEGRAM_CHAT_ID }}"      >> .env
+          printf "DATABASE_URL=%s\n"          "${{ secrets.DATABASE_URL }}"          >> .env
+          echo "--- .env (masked) ---"
           sed -E 's/(=).+/\1*****/' .env || true
 
       - name: Compose config (prod)
@@ -73,8 +74,12 @@ jobs:
       - name: Up (prod)
         run: docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" up -d --remove-orphans
 
+      - name: Show ps
+        run: docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" ps
+
       - name: Wait for health=healthy
-        env: { SVC: app }
+        env:
+          SVC: app
         run: |
           set -e
           CID="$(docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" ps -q "$SVC" || true)"
@@ -88,7 +93,9 @@ jobs:
             [ "$HS" = "healthy" ] && exit 0
             sleep 2
           done
-          echo "Timeout waiting for healthy"; docker logs --tail=300 "$CID" || true; exit 1
+          echo "Timeout waiting for healthy"
+          docker logs --tail=300 "$CID" || true
+          exit 1
 
       - name: Tail logs (masked) + artifact
         id: logs

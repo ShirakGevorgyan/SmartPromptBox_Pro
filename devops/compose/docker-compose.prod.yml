@@ -4,29 +4,19 @@ services:
       context: ../../
       dockerfile: devops/docker/app/Dockerfile
     image: smartpromptbox_pro:prod
-
-    dns:
-      - 1.1.1.1
-      - 8.8.8.8
-
-    env_file:
-      - ../../.env
+    dns: [1.1.1.1, 8.8.8.8]
+    env_file: ../../.env
     environment:
       DATABASE_URL: ${DATABASE_URL:-sqlite:///db/memory.db}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
-
     volumes:
       - db_data:/app/db
-
     command: python3 -m app.telegram_bot.bot
-
     healthcheck:
       test: ["CMD", "python", "-c", "import app; print('ok')"]
       interval: 30s
       timeout: 5s
       retries: 5
-
     restart: unless-stopped
-
 volumes:
   db_data: {}
