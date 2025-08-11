@@ -27,6 +27,8 @@ images
 
 actions-runner/
 
+.venv/
+
 tests/db/
 tests/logs/
 tests/performance/*.png

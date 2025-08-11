@@ -11,9 +11,10 @@ RUN python -m pip install --upgrade pip && \
     if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
 COPY app/ ./app/
-COPY tests/ ./tests/
-COPY devops/ ./devops/
 
 RUN mkdir -p db
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=5 \
+CMD python -c "import app; print('ok')" || exit 1
 
 CMD ["python3", "-m", "app.telegram_bot.bot"]
