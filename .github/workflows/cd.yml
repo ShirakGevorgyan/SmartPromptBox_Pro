@@ -17,33 +17,29 @@ jobs:
   deploy_local:
     name: Deploy on my self-hosted runner (no Ansible)
     runs-on: [self-hosted, Linux, X64]
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run && github.event.workflow_run.conclusion == 'success') }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     timeout-minutes: 45
 
     env:
       PROJECT_PROD: smartpromptbox_prod
-      PROJECT_DEV:  smartpromptbox_dev
       COMPOSE_PROD: devops/compose/docker-compose.prod.yml
-      COMPOSE_DEV:  devops/compose/docker-compose.dev.yml
       DOCKER_BUILDKIT: "1"
       COMPOSE_DOCKER_CLI_BUILD: "1"
 
     steps:
-      # ---- fix EACCES from previous root-owned files
-      - name: Pre-clean root-owned leftovers (fast, safe)
+      # --- FAST pre-clean: only what caused EACCES before ---
+      - name: Pre-clean root-owned leftovers (fast)
         run: |
-          set -euxo pipefail
+          set -euo pipefail
           REPO="${GITHUB_REPOSITORY##*/}"
-          CANDIDATES=(
-            "${RUNNER_WORKSPACE}/${REPO}/${REPO}"
-            "${RUNNER_WORKSPACE}/${REPO}"
-          )
-          for BASE in "${CANDIDATES[@]}"; do
+          # workspace candidates
+          for BASE in "${RUNNER_WORKSPACE}/${REPO}/${REPO}" "${RUNNER_WORKSPACE}/${REPO}"; do
             [ -d "$BASE" ] || continue
-            sudo rm -f  "$BASE/db/memory.db" || true
-            sudo rm -rf "$BASE/devops/ansible/runtime" || true
-            sudo rm -f  "$BASE/.env" "$BASE/cd-logs.txt" || true
-            sudo chown -R "$USER:$USER" "$BASE" || true
+            # only db/ and tiny files – no recursive chown on whole repo
+            sudo rm -f  "$BASE/db/memory.db" 2>/dev/null || true
+            if [ -d "$BASE/db" ]; then sudo chown -R "$USER:$USER" "$BASE/db" || true; fi
+            sudo rm -rf "$BASE/devops/ansible/runtime" 2>/dev/null || true
+            sudo rm -f  "$BASE/.env" "$BASE/cd-logs.txt" 2>/dev/null || true
           done
 
       - name: Checkout
@@ -51,9 +47,6 @@ jobs:
         with:
           fetch-depth: 1
           clean: false
-
-      - name: Ensure dev stack is not running (optional)
-        run: docker compose -p "$PROJECT_DEV" -f "$COMPOSE_DEV" down --remove-orphans || true
 
       - name: Docker sanity
         run: |
@@ -64,26 +57,24 @@ jobs:
       - name: Write fresh .env from Secrets
         run: |
           : > .env
-          printf "OPENAI_API_KEY=%s\n"        "${{ secrets.OPENAI_API_KEY }}"        >> .env
-          printf "TELEGRAM_BOT_TOKEN=%s\n"    "${{ secrets.TELEGRAM_BOT_TOKEN }}"    >> .env
-          printf "GENIUS_ACCESS_TOKEN=%s\n"   "${{ secrets.GENIUS_ACCESS_TOKEN }}"   >> .env
-          printf "TELEGRAM_CHAT_ID=%s\n"      "${{ secrets.TELEGRAM_CHAT_ID }}"      >> .env
-          printf "DATABASE_URL=%s\n"          "${{ secrets.DATABASE_URL }}"          >> .env
-          echo "Wrote .env (masked):"
+          printf "OPENAI_API_KEY=%s\n"      "${{ secrets.OPENAI_API_KEY }}"      >> .env
+          printf "TELEGRAM_BOT_TOKEN=%s\n"  "${{ secrets.TELEGRAM_BOT_TOKEN }}"  >> .env
+          printf "GENIUS_ACCESS_TOKEN=%s\n" "${{ secrets.GENIUS_ACCESS_TOKEN }}" >> .env
+          printf "TELEGRAM_CHAT_ID=%s\n"    "${{ secrets.TELEGRAM_CHAT_ID }}"    >> .env
+          printf "DATABASE_URL=%s\n"        "${{ secrets.DATABASE_URL }}"        >> .env
           sed -E 's/(=).+/\1*****/' .env || true
 
       - name: Compose config (prod)
         run: docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" config
 
-      - name: Build image (prod) with logs
+      - name: Build image (prod)
         run: docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" build --pull --progress=plain
 
       - name: Up (prod)
         run: docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" up -d --remove-orphans
 
       - name: Wait for health=healthy
-        env:
-          SVC: app
+        env: { SVC: app }
         run: |
           set -e
           CID="$(docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" ps -q "$SVC" || true)"
@@ -97,9 +88,7 @@ jobs:
             [ "$HS" = "healthy" ] && exit 0
             sleep 2
           done
-          echo "Timeout waiting for healthy"
-          docker logs --tail=300 "$CID" || true
-          exit 1
+          echo "Timeout waiting for healthy"; docker logs --tail=300 "$CID" || true; exit 1
 
       - name: Tail logs (masked) + artifact
         id: logs
@@ -111,7 +100,6 @@ jobs:
             | sed -E 's/([0-9]{9,}:[A-Za-z0-9_-]{20,})/**token**/g' \
             | tee cd-logs.txt
           echo "logfile=cd-logs.txt" >> $GITHUB_OUTPUT
-
       - uses: actions/upload-artifact@v4
         if: ${{ always() && steps.logs.outputs.logfile != '' }}
         with:
