@@ -26,15 +26,27 @@ jobs:
       COMPOSE_DEV:  devops/compose/docker-compose.dev.yml
 
     steps:
+      - name: Pre-clean root-owned leftovers
+        run: |
+          set -euxo pipefail
+          REPO="${GITHUB_REPOSITORY##*/}"
+          CANDIDATES=(
+            "${RUNNER_WORKSPACE}/${REPO}/${REPO}"
+            "${RUNNER_WORKSPACE}/${REPO}"
+          )
+          for BASE in "${CANDIDATES[@]}"; do
+            [ -d "$BASE" ] || continue
+            sudo rm -f  "$BASE/db/memory.db" || true
+            sudo rm -rf "$BASE/devops/ansible/runtime" || true
+            sudo rm -f  "$BASE/.env" "$BASE/cd-logs.txt" || true
+            sudo chown -R "$USER:$USER" "$BASE" || true
+          done
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
           clean: false
-
-      - name: Ensure dev stack is not running (optional)
-        run: |
-          docker compose -p "$PROJECT_DEV" -f "$COMPOSE_DEV" down --remove-orphans || true
 
       - name: Ensure prerequisites (Ansible, Docker)
         run: |
@@ -45,9 +57,14 @@ jobs:
           if ! command -v docker >/dev/null 2>&1; then
             sudo apt-get update -y && sudo apt-get install -y docker.io
           fi
+          # Docker Compose v2 (plugin), ոչ թե հին docker-compose v1
           if ! docker compose version >/dev/null 2>&1; then
-            sudo apt-get install -y docker-compose
+            sudo apt-get install -y docker-compose-plugin
           fi
+
+      - name: Ensure dev stack is not running (optional)
+        run: |
+          sudo docker compose -p "$PROJECT_DEV" -f "$COMPOSE_DEV" down --remove-orphans || true
 
       - name: Write fresh .env from Secrets (overwrite each run)
         run: |
@@ -95,25 +112,26 @@ jobs:
       - name: Wait for health=healthy
         run: |
           set -e
-          CID="$(docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" ps -q app || true)"
+          sudo docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" ps
+          CID="$(sudo docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" ps -q app || true)"
           if [ -z "$CID" ]; then
-            echo "Container not found"; docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" ps; exit 1
+            echo "Container not found"; exit 1
           fi
           echo "Waiting for healthy: $CID"
           for i in {1..60}; do
-            HS="$(docker inspect -f '{{.State.Health.Status}}' "$CID" 2>/dev/null || echo 'unknown')"
+            HS="$(sudo docker inspect -f '{{.State.Health.Status}}' "$CID" 2>/dev/null || echo 'unknown')"
             echo "[$i] health=$HS"
             [ "$HS" = "healthy" ] && exit 0
             sleep 2
           done
-          echo "Timeout waiting for healthy"; docker logs --tail=200 "$CID" || true; exit 1
+          echo "Timeout waiting for healthy"; sudo docker logs --tail=200 "$CID" || true; exit 1
 
       - name: Tail logs (masked) + artifact
         id: logs
         run: |
-          CID="$(docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" ps -q app || true)"
+          CID="$(sudo docker compose -p "$PROJECT_PROD" -f "$COMPOSE_PROD" ps -q app || true)"
           [ -n "$CID" ] || exit 0
-          docker logs --tail=200 "$CID" 2>&1 \
+          sudo docker logs --tail=200 "$CID" 2>&1 \
             | sed -E 's/(sk-[A-Za-z0-9_-]+)/sk-*****/g' \
             | sed -E 's/([0-9]{9,}:[A-Za-z0-9_-]{20,})/**token**/g' \
             | tee cd-logs.txt
