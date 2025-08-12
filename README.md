@@ -1,13 +1,24 @@
 # SmartPromptBox Pro
 
-[![CI](https://github.com/ShirakGevorgyan/SmartPromptBox_Pro/blob/main/.github/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ShirakGevorgyan/SmartPromptBox_Pro/blob/main/.github/workflows/ci.yml)
-[![CD](https://github.com/ShirakGevorgyan/SmartPromptBox_Pro/blob/main/.github/workflows/cd.yml/badge.svg?branch=main)](https://github.com/ShirakGevorgyan/SmartPromptBox_Pro/blob/main/.github/workflows/cd.yml)
-[![Docker](https://img.shields.io/badge/Docker-ready-informational)](#docker--compose)
-[![License](https://img.shields.io/badge/license-MIT-lightgrey)](#license)
+<p align="left">
+  <a href="https://github.com/ShirakGevorgyan/SmartPromptBox_Pro/actions/workflows/ci.yml?query=branch%3Amain">
+    <img src="https://github.com/ShirakGevorgyan/SmartPromptBox_Pro/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI">
+  </a>
+  <a href="https://github.com/ShirakGevorgyan/SmartPromptBox_Pro/actions/workflows/cd.yml?query=branch%3Amain">
+    <img src="https://github.com/ShirakGevorgyan/SmartPromptBox_Pro/actions/workflows/cd.yml/badge.svg?branch=main" alt="CD">
+  </a>
+  <a href="#docker--compose">
+    <img src="https://img.shields.io/badge/Docker-ready-informational" alt="Docker">
+  </a>
+  <a href="./LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-lightgrey" alt="License: MIT">
+  </a>
+</p>
+
 
 A production‑ready **Telegram bot** powered by LLMs: mood‑aware song/movie recommendations, long‑memory GPT chat, image generation, and a fully automated **CI/CD** pipeline.
 
-> Primary README in **English**. An Armenian version lives alongside this file.
+> **Languages:** [English](README.md) · [Հայերեն](README_AM.md)
 
 ---
 
@@ -366,8 +377,9 @@ Workflow: `.github/workflows/cd.yml`
 
 ![Movies menu](docs/images/07_movies_menu.png)
 ![Movies genres](docs/images/08_movies_genres.png)
-![Movie result card](docs/images/09_movies_result.png.png)
-![Series result card](docs/images/09b_series_result.png.png)
+![Movie result card](docs/images/09_movies_result.png)
+![Series result card](docs/images/09b_series_result.png)
+
 
 **Image Generation**
 
@@ -473,5 +485,6 @@ Pull requests and issues are welcome. Please:
 
 ---
 
+
 ## License
-Add a `LICENSE` file (e.g., MIT) for clarity.
+This project is licensed under the **MIT License**. See [LICENSE](./LICENSE) for details.
