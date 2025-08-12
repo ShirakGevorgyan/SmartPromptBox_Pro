@@ -1,7 +1,7 @@
 """Minimal FastAPI app for health checks and simple diagnostics.
 
 This service can be used as:
-- a container health probe (e.g., `/healthz`),
+- a container health probe (e.g., `/health`),
 - a very small public surface to verify the deployment is running,
 - a placeholder API if you decide to add HTTP endpoints later.
 
@@ -31,7 +31,7 @@ def root():
 
 
 # Health check
-@app.get("/healthz")
+@app.get("/health")
 def health():
     """Kubernetes/Compose health probe endpoint."""
     return {"status": "ok"}
