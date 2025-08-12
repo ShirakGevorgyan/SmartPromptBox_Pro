@@ -34,6 +34,7 @@ setup_logging()
 load_dotenv()
 BOT_TOKEN = (os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
 
+
 async def start_command_handler(message: Message):
     await message.answer(
         (
@@ -47,6 +48,7 @@ async def start_command_handler(message: Message):
         ),
         reply_markup=main_menu,
     )
+
 
 def build_dispatcher() -> Dispatcher:
     storage = MemoryStorage()
@@ -69,6 +71,7 @@ def build_dispatcher() -> Dispatcher:
     dp.message.register(start_command_handler, CommandStart())
     return dp
 
+
 def make_bot(token: str) -> Bot:
     # INT timeout՝ որպեսզի aiogram-ը կարողանա գումարել polling_timeout-ին
     session = AiohttpSession(timeout=60)
@@ -77,6 +80,7 @@ def make_bot(token: str) -> Bot:
         session=session,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
+
 
 async def main():
     if not BOT_TOKEN:
@@ -96,10 +100,10 @@ async def main():
         await bot.set_my_commands(
             commands=[
                 BotCommand(command="start", description="Գլխավոր մենյու"),
-                BotCommand(command="help",  description="Օգնություն / օգտագործում"),
+                BotCommand(command="help", description="Օգնություն / օգտագործում"),
                 BotCommand(command="about", description="Անուն, վերսիա, uptime"),
-                BotCommand(command="ping",  description="Արագ ստուգում"),
-                BotCommand(command="id",    description="User/Chat ID-ներ"),
+                BotCommand(command="ping", description="Արագ ստուգում"),
+                BotCommand(command="id", description="User/Chat ID-ներ"),
             ]
         )
     except Exception as e:
@@ -119,6 +123,7 @@ async def main():
             await asyncio.sleep(5)
         else:
             backoff = 1
+
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -47,7 +47,10 @@ async def test_ask_for_prompt_sets_state():
 
 
 @pytest.mark.asyncio
-@patch("app.telegram_bot.handlers.img_handler.generate_image", return_value="test_image.png")
+@patch(
+    "app.telegram_bot.handlers.img_handler.generate_image",
+    return_value="test_image.png",
+)
 @patch("os.path.exists", return_value=True)
 @patch("os.remove")
 async def test_handle_prompt_success(mock_remove, mock_exists, mock_generate):
@@ -56,7 +59,7 @@ async def test_handle_prompt_success(mock_remove, mock_exists, mock_generate):
 
     await img_handler.handle_prompt(message, state)
 
-    assert "__state__" not in state._data  
+    assert "__state__" not in state._data
 
 
 @pytest.mark.asyncio
@@ -68,7 +71,7 @@ async def test_handle_prompt_failure(mock_exists, mock_generate):
 
     await img_handler.handle_prompt(message, state)
 
-    assert "__state__" not in state._data 
+    assert "__state__" not in state._data
 
 
 @pytest.mark.asyncio

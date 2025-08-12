@@ -7,10 +7,16 @@ from app.telegram_bot.handlers import series_menu_handler
 @pytest.mark.asyncio
 async def test_send_random_series():
     with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=DeprecationWarning, message="The `__fields__` attribute is deprecated.*")
+        warnings.filterwarnings(
+            "ignore",
+            category=DeprecationWarning,
+            message="The `__fields__` attribute is deprecated.*",
+        )
 
         fake_message = AsyncMock()
-        with patch("app.telegram_bot.handlers.series_menu_handler.get_random_series_llm") as mock_llm:
+        with patch(
+            "app.telegram_bot.handlers.series_menu_handler.get_random_series_llm"
+        ) as mock_llm:
             mock_llm.return_value = (
                 "🎥 Վերնագիր՝ Test Series\n"
                 "🎭 Ժանրը՝ Drama\n"
@@ -28,12 +34,18 @@ async def test_send_random_series():
 @pytest.mark.asyncio
 async def test_handle_description():
     with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=DeprecationWarning, message="The `__fields__` attribute is deprecated.*")
+        warnings.filterwarnings(
+            "ignore",
+            category=DeprecationWarning,
+            message="The `__fields__` attribute is deprecated.*",
+        )
 
         fake_message = AsyncMock()
         fake_state = AsyncMock()
         fake_message.text = "Funny sci-fi with robots"
-        with patch("app.telegram_bot.handlers.series_menu_handler.suggest_series_by_description_llm") as mock_llm:
+        with patch(
+            "app.telegram_bot.handlers.series_menu_handler.suggest_series_by_description_llm"
+        ) as mock_llm:
             mock_llm.return_value = (
                 "🎥 Վերնագիր՝ Robo Laughs\n"
                 "🎭 Ժանրը՝ Comedy, Sci-Fi\n"
@@ -51,12 +63,18 @@ async def test_handle_description():
 @pytest.mark.asyncio
 async def test_handle_series_name():
     with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=DeprecationWarning, message="The `__fields__` attribute is deprecated.*")
+        warnings.filterwarnings(
+            "ignore",
+            category=DeprecationWarning,
+            message="The `__fields__` attribute is deprecated.*",
+        )
 
         fake_message = AsyncMock()
         fake_state = AsyncMock()
         fake_message.text = "Breaking Bad"
-        with patch("app.telegram_bot.handlers.series_menu_handler.get_series_details_by_name_llm") as mock_llm:
+        with patch(
+            "app.telegram_bot.handlers.series_menu_handler.get_series_details_by_name_llm"
+        ) as mock_llm:
             mock_llm.return_value = (
                 "🎥 Վերնագիր՝ Breaking Bad\n"
                 "🎭 Ժանրը՝ Crime, Drama\n"

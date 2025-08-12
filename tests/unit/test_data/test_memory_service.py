@@ -7,7 +7,9 @@ from app.data.memory_service import load_history, save_history
 
 @pytest.fixture(scope="function")
 def test_session():
-    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+    engine = create_engine(
+        "sqlite:///:memory:", connect_args={"check_same_thread": False}
+    )
     TestingSessionLocal = sessionmaker(bind=engine)
     Base.metadata.create_all(bind=engine)
     session = TestingSessionLocal()

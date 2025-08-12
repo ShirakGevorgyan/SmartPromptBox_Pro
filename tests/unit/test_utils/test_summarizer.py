@@ -2,10 +2,10 @@ import pytest
 from unittest.mock import AsyncMock, patch
 from app.utils.summarizer import summarize_history
 
+
 @pytest.mark.asyncio
 @patch("app.utils.summarizer.get_openai_client")
 async def test_summarize_history(mock_get_client):
-    
     mock_response = AsyncMock()
     mock_response.chat.completions.create.return_value = AsyncMock(
         choices=[AsyncMock(message=AsyncMock(content="📝 This is a summary."))]

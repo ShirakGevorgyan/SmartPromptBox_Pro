@@ -2,7 +2,7 @@ from app.llm.text_utils import (
     extract_plot_only,
     clean_garbage_from_plot,
     refine_plot_description,
-    replace_plot_with_refined
+    replace_plot_with_refined,
 )
 
 from unittest.mock import MagicMock
@@ -15,10 +15,12 @@ FAKE_TEXT = """
 📊 IMDb գնահատական՝ 8.2
 """
 
+
 def test_extract_plot_only():
     plot = extract_plot_only(FAKE_TEXT)
     assert "փոխել աշխարհը" in plot
     assert "ժանրը" not in plot
+
 
 def test_clean_garbage_from_plot_removes_garbage():
     dirty = "Սա նորմալ ✅✅ տեքստ է 👻 բայց ունի ###$% technical <> <> նշաններ..."
@@ -27,6 +29,7 @@ def test_clean_garbage_from_plot_removes_garbage():
     assert "👻" not in cleaned
     assert "<>" not in cleaned
     assert "տեքստ" in cleaned
+
 
 def test_refine_plot_description_mocked():
     raw_plot = "Սա սյուժե է, որը պետք է բարելավվի։"
@@ -38,6 +41,7 @@ def test_refine_plot_description_mocked():
 
     result = refine_plot_description(raw_plot, fake_client)
     assert "բարելավված" in result
+
 
 def test_replace_plot_with_refined():
     full_text = """

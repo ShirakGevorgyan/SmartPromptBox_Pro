@@ -37,7 +37,10 @@ class MockFSMContext:
 
 
 @pytest.mark.asyncio
-@patch("app.telegram_bot.handlers.gpt_memory_chat_handler.gpt_assistant_conversation", new_callable=AsyncMock)
+@patch(
+    "app.telegram_bot.handlers.gpt_memory_chat_handler.gpt_assistant_conversation",
+    new_callable=AsyncMock,
+)
 @patch("app.telegram_bot.handlers.gpt_memory_chat_handler.get_or_create_user_session")
 @patch("app.telegram_bot.handlers.gpt_memory_chat_handler.update_session_info")
 async def test_normal_conversation_flow(mock_update, mock_create, mock_gpt):

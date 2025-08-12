@@ -2,10 +2,10 @@ from unittest.mock import patch, MagicMock
 from app.llm import img_generator
 import os
 
+
 @patch("app.llm.img_generator.requests.get")
 @patch("app.llm.img_generator.client")
 def test_generate_image(mock_client, mock_requests):
-    
     mock_client.images.generate.return_value.data = [
         MagicMock(url="https://fakeimage.com/image1.png")
     ]

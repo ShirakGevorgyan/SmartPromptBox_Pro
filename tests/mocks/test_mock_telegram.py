@@ -36,11 +36,7 @@ async def test_show_series_menu_reply_markup_buttons():
     reply_markup: ReplyKeyboardMarkup = kwargs.get("reply_markup")
     assert isinstance(reply_markup, ReplyKeyboardMarkup)
 
-    all_button_texts = [
-        button.text
-        for row in reply_markup.keyboard
-        for button in row
-    ]
+    all_button_texts = [button.text for row in reply_markup.keyboard for button in row]
 
     expected_buttons = [
         "🎭 Սերիալ ըստ ժանրի",
@@ -49,7 +45,7 @@ async def test_show_series_menu_reply_markup_buttons():
         "🔍 Ասա սերիալի անունը",
         "🎲 Պատահական սերիալ",
         "🔙 Վերադառնալ Ֆիլմեր և Սերիալներ",
-        "🔝 Վերադառնալ գլխավոր մենյու"
+        "🔝 Վերադառնալ գլխավոր մենյու",
     ]
 
     for expected in expected_buttons:
@@ -58,7 +54,10 @@ async def test_show_series_menu_reply_markup_buttons():
 
 @pytest.mark.asyncio
 @patch("app.telegram_bot.handlers.series_menu_handler.get_random_series_llm")
-@patch("app.telegram_bot.handlers.series_menu_handler.send_long_message", new_callable=AsyncMock)
+@patch(
+    "app.telegram_bot.handlers.series_menu_handler.send_long_message",
+    new_callable=AsyncMock,
+)
 async def test_send_random_series_mocked_gpt(mock_send_long, mock_gpt):
     message = AsyncMock()
     message.text = "🎲 Պատահական սերիալ"
@@ -83,9 +82,16 @@ async def test_send_random_series_mocked_gpt(mock_send_long, mock_gpt):
 
 
 @pytest.mark.asyncio
-@patch("app.telegram_bot.handlers.series_menu_handler.suggest_series_by_description_llm")
-@patch("app.telegram_bot.handlers.series_menu_handler.send_long_message", new_callable=AsyncMock)
-async def test_handle_description_sets_state_and_replies(mock_send_long, mock_suggest_llm):
+@patch(
+    "app.telegram_bot.handlers.series_menu_handler.suggest_series_by_description_llm"
+)
+@patch(
+    "app.telegram_bot.handlers.series_menu_handler.send_long_message",
+    new_callable=AsyncMock,
+)
+async def test_handle_description_sets_state_and_replies(
+    mock_send_long, mock_suggest_llm
+):
     mock_state = AsyncMock(spec=FSMContext)
     message = AsyncMock()
     message.text = "ուզում եմ դրամատիկ ու հուզիչ սերիալ"

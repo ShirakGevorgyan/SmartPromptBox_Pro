@@ -11,9 +11,12 @@ from app.data.db_session_tracker import (
     get_session_info,
 )
 
+
 @pytest.fixture(scope="function")
 def test_session():
-    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+    engine = create_engine(
+        "sqlite:///:memory:", connect_args={"check_same_thread": False}
+    )
     TestingSessionLocal = sessionmaker(bind=engine)
     Base.metadata.create_all(bind=engine)
     session = TestingSessionLocal()
@@ -26,7 +29,7 @@ def test_session():
 def test_get_or_create_user_session(test_session):
     user_id = "user123"
     session_id = get_or_create_user_session(test_session, user_id)
-    
+
     assert isinstance(session_id, str)
     assert len(session_id) > 0
 
@@ -43,7 +46,7 @@ def test_update_and_get_session_info(test_session):
         db=test_session,
         user_id=user_id,
         topic="Music",
-        last_question="Ով է երգում This is the life երգը?"
+        last_question="Ով է երգում This is the life երգը?",
     )
 
     topic, question = get_session_info(test_session, user_id)

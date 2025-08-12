@@ -4,10 +4,9 @@ from app.llm import image_generator
 
 @patch("app.llm.image_generator.client")
 def test_generate_image_prompts_from_mood(mock_client):
-    
-    mock_response_text = """1. A lonely tree standing in the fog at dawn.  
+    mock_response_text = """1. A lonely tree standing in the fog at dawn.
 2. A person walking alone under heavy rain with neon lights reflecting on wet streets."""
-    
+
     mock_client.chat.completions.create.return_value.choices = [
         MagicMock(message=MagicMock(content=mock_response_text))
     ]

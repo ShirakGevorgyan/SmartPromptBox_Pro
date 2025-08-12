@@ -16,6 +16,7 @@ engine = create_engine(
 )
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False, future=True)
 
+
 def init_db() -> None:
     """Ստեղծում է db/ պանակը և աղյուսակները, եթե չկան."""
     if IS_SQLITE:
@@ -26,6 +27,7 @@ def init_db() -> None:
     # եթե ունես այլ մոդելներ, այստեղ էլ імпорт արա (քոմենթը պահիր)
 
     Base.metadata.create_all(bind=engine)
+
 
 # օգտակար՝ եթե երբևէ պետք լինի scoped session
 def get_db():

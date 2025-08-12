@@ -8,9 +8,10 @@ from app.llm.mood_inferencer import generate_songs_random
 from app.llm.song_llm import (
     generate_songs_by_genre,
     generate_songs_by_description,
-    generate_top_songs_by_artist
+    generate_top_songs_by_artist,
 )
 from app.telegram_bot.menu import main_menu, genre_menu, song_menu
+
 router = Router()
 
 
@@ -43,9 +44,11 @@ async def send_song_buttons(songs: list[dict], message: Message, state: FSMConte
 
         text = f"<b>{title}</b> — <i>{artist}</i>\n📎 {description}"
 
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="🔗 YouTube", url=youtube_url)],
-        ])
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="🔗 YouTube", url=youtube_url)],
+            ]
+        )
         await message.answer(text, parse_mode="HTML", reply_markup=keyboard)
 
 
@@ -54,21 +57,21 @@ async def new_random_song_handler(message: Message, state: FSMContext):
     await random_song_handler(message, state)
 
 
-
 @router.message(F.text == "🔝 Վերադառնալ գլխավոր մենյու")
 async def back_to_main_menu(message: Message):
     await message.answer("🎼 Վերադարձ գլխավոր մենյու։", reply_markup=main_menu)
-    
-    
+
+
 @router.message(F.text == "🔙 Վերադառնալ Երգեր մենյու")
 async def back_to_song_menu(message: Message):
     await message.answer("🎼 Վերադարձ Երգեր մենյու։", reply_markup=song_menu)
 
 
-
 @router.message(F.text == "🎧 Ըստ ոճի")
 async def ask_for_genre(message: Message, state: FSMContext):
-    await message.answer("🎧 Խնդրում եմ ընտրիր կամ գրիր երաժշտական ոճը։", reply_markup=genre_menu)
+    await message.answer(
+        "🎧 Խնդրում եմ ընտրիր կամ գրիր երաժշտական ոճը։", reply_markup=genre_menu
+    )
     await state.set_state(SongStates.waiting_for_genre)
 
 
@@ -77,7 +80,9 @@ async def handle_genre_input(message: Message, state: FSMContext):
     genre = message.text.strip("🎸🎹🎤🎶💃🎻🏞🎼🔥🎷 ")
 
     if not genre:
-        await message.answer("❗️ Չճանաչված ժանր։ Փորձիր նորից ընտրել ցանկից։", reply_markup=genre_menu)
+        await message.answer(
+            "❗️ Չճանաչված ժանր։ Փորձիր նորից ընտրել ցանկից։", reply_markup=genre_menu
+        )
         return
 
     await message.answer(f"🎧 Որոնում եմ {genre} ոճի երգեր…")
@@ -89,7 +94,10 @@ async def handle_genre_input(message: Message, state: FSMContext):
 
     await message.answer("🎧 Ահա քո երգերը՝")
     await send_song_buttons(songs, message, state)
-    await message.answer("🤖 Հաջորդը ի՞նչ կուզես անենք։ Նոր ոճ ընտրիր կամ վերադարձիր մենյուին։", reply_markup=genre_menu)
+    await message.answer(
+        "🤖 Հաջորդը ի՞նչ կուզես անենք։ Նոր ոճ ընտրիր կամ վերադարձիր մենյուին։",
+        reply_markup=genre_menu,
+    )
     await state.clear()
     await state.set_state(SongStates.waiting_for_genre)
 
@@ -136,6 +144,7 @@ async def handle_artist_input(message: Message, state: FSMContext):
     await message.answer("🤖 Հաջորդը ի՞նչ կուզես անենք։", reply_markup=song_menu)
     await state.clear()
     await state.set_state(SongStates.waiting_for_artist)
+
 
 # 🎵 Songs բաժնի բացում (հուսալի՝ text-based ստուգում)
 @router.message(lambda message: message.text and "🎵 Երգեր" in message.text)

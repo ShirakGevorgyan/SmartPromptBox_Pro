@@ -7,7 +7,6 @@ from app.telegram_bot.handlers import random_songs_handler
 
 @pytest.mark.asyncio
 async def test_random_song_handler_success():
-    
     mock_message = AsyncMock()
     mock_message.answer = AsyncMock()
     mock_state = AsyncMock(spec=FSMContext)
@@ -24,10 +23,13 @@ async def test_random_song_handler_success():
             "artist": "Artist 2",
             "description": "Chill mood",
             "youtube": "https://youtube.com/2",
-        }
+        },
     ]
 
-    with patch("app.telegram_bot.handlers.random_songs_handler.generate_songs_random", return_value=mock_songs):
+    with patch(
+        "app.telegram_bot.handlers.random_songs_handler.generate_songs_random",
+        return_value=mock_songs,
+    ):
         await random_songs_handler.random_song_handler(mock_message, mock_state)
 
     assert mock_message.answer.call_count >= 3
@@ -41,7 +43,10 @@ async def test_random_song_handler_empty():
 
     mock_state = AsyncMock(spec=FSMContext)
 
-    with patch("app.telegram_bot.handlers.random_songs_handler.generate_songs_random", return_value=[]):
+    with patch(
+        "app.telegram_bot.handlers.random_songs_handler.generate_songs_random",
+        return_value=[],
+    ):
         await random_songs_handler.random_song_handler(mock_message, mock_state)
 
     mock_message.answer.assert_any_call("❌ Չհաջողվեց գտնել երգ։ Փորձիր նորից 😢")

@@ -15,6 +15,7 @@ class FakeMessage:
         self.text = text
         self.answer = AsyncMock()
 
+
 @pytest.mark.asyncio
 async def test_start_command_handler():
     message = FakeMessage()

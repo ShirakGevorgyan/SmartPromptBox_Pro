@@ -1,6 +1,6 @@
-
 from app.data.models.base import Base
 from sqlalchemy import Column, Integer, String, Text
+
 
 class UserMemory(Base):
     __tablename__ = "user_memory"

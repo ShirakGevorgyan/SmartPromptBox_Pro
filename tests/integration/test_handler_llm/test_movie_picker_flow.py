@@ -6,7 +6,7 @@ from app.telegram_bot.handlers.movie_menu_handler import (
     send_random_movie,
     handle_description,
     handle_movie_name,
-    handle_movie_genre
+    handle_movie_genre,
 )
 
 
@@ -29,6 +29,7 @@ async def test_send_random_movie(mock_random_movie_llm):
 
     await send_random_movie(mock_msg)
 
+
 @pytest.mark.asyncio
 @patch("app.telegram_bot.handlers.movie_menu_handler.suggest_movies_by_description_llm")
 async def test_handle_description(mock_suggest_movies):
@@ -49,6 +50,7 @@ async def test_handle_description(mock_suggest_movies):
     mock_state.clear = AsyncMock()
 
     await handle_description(mock_msg, mock_state)
+
 
 @pytest.mark.asyncio
 @patch("app.telegram_bot.handlers.movie_menu_handler.get_movie_details_by_name_llm")
@@ -71,6 +73,7 @@ async def test_handle_movie_name(mock_movie_details):
 
     await handle_movie_name(mock_msg, mock_state)
 
+
 @pytest.mark.asyncio
 @patch("app.telegram_bot.handlers.movie_menu_handler.get_movies_by_genre_llm")
 async def test_handle_movie_genre_valid(mock_by_genre):
@@ -91,6 +94,7 @@ async def test_handle_movie_genre_valid(mock_by_genre):
     mock_state.clear = AsyncMock()
 
     await handle_movie_genre(mock_msg, mock_state)
+
 
 @pytest.mark.asyncio
 async def test_handle_movie_genre_invalid():

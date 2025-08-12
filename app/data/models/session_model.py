@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Text, DateTime
 from datetime import datetime
 from app.data.models.base import Base
 
+
 class UserSession(Base):
     __tablename__ = "user_sessions"
 

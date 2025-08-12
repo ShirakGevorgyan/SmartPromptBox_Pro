@@ -18,7 +18,7 @@ def test_load_history_returns_correct_structure():
     assert isinstance(result, list)
     assert result == [
         {"role": "user", "content": "Hello"},
-        {"role": "assistant", "content": "Hi there!"}
+        {"role": "assistant", "content": "Hi there!"},
     ]
 
 
@@ -27,7 +27,7 @@ def test_save_history_deletes_and_inserts():
 
     history = [
         {"role": "user", "content": "Hi"},
-        {"role": "assistant", "content": "Hello"}
+        {"role": "assistant", "content": "Hello"},
     ]
 
     save_history(mock_session, user_id="123", history=history)

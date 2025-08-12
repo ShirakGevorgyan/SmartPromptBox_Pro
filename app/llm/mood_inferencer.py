@@ -9,9 +9,11 @@ from dotenv import load_dotenv
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+
 def clean_gpt_code_block(text: str) -> str:
     """Հանում է ```python ... ``` պարունակությունը, եթե կա"""
     return re.sub(r"```(?:python)?\s*([\s\S]*?)\s*```", r"\1", text).strip()
+
 
 def parse_fallback_list(response: str) -> List[Dict[str, str]]:
     lines = response.splitlines()
@@ -20,12 +22,14 @@ def parse_fallback_list(response: str) -> List[Dict[str, str]]:
         if " - " in line:
             parts = [p.strip() for p in line.split(" - ", 1)]
             if len(parts) == 2:
-                fallback.append({
-                    "title": parts[1],
-                    "artist": parts[0],
-                    "description": "Նկարագրություն չկա։",
-                    "youtube": ""
-                })
+                fallback.append(
+                    {
+                        "title": parts[1],
+                        "artist": parts[0],
+                        "description": "Նկարագրություն չկա։",
+                        "youtube": "",
+                    }
+                )
     return fallback
 
 
@@ -36,15 +40,15 @@ def generate_songs_for_mood(mood: str) -> List[Dict[str, str]]:
         "Առաջարկիր 5 երգ, որոնք համապատասխանում են այդ տրամադրությանը։ "
         "Յուրաքանչյուր երգի համար վերադարձրու հետևյալ դաշտերը՝ title, artist, description, youtube։ "
         "Վերադարձը կառուցիր որպես Python list[dict] այս ձևաչափով՝\n\n"
-        '[\n'
-        '  {\n'
+        "[\n"
+        "  {\n"
         '    "title": "Hello",\n'
         '    "artist": "Adele",\n'
         '    "description": "Մելանխոլիկ բալլադ զղջման և կորցրած կապի մասին։",\n'
         '    "youtube": "https://www.youtube.com/watch?v=YQHsXMglC9A"\n'
-        '  },\n'
-        '  ...\n'
-        ']\n\n'
+        "  },\n"
+        "  ...\n"
+        "]\n\n"
         "Մի՛ գրիր բացատրություններ, միայն ցուցակը՝ կոդի բլոկի մեջ։"
     )
 
@@ -57,6 +61,7 @@ def generate_songs_for_mood(mood: str) -> List[Dict[str, str]]:
         print("❌ GPT structured վերադարձը ձախողվեց:", e)
         return parse_fallback_list(response)
 
+
 def generate_songs_random() -> List[Dict[str, str]]:
     system_prompt = (
         "Դու երաժշտական օգնական ես։ "
@@ -64,15 +69,15 @@ def generate_songs_random() -> List[Dict[str, str]]:
         "Թող դա լինի այնպիսի երգ որ Youtube-ում ունենա 300 միլիոնից քիչ, շատ քիչ դիտում։ "
         "Երգի համար վերադարձրու հետևյալ դաշտերը՝ title, artist, description, youtube։ "
         "Վերադարձը կառուցիր որպես Python list[dict] այս ձևաչափով՝\n\n"
-        '[\n'
-        '  {\n'
+        "[\n"
+        "  {\n"
         '    "title": "Hello",\n'
         '    "artist": "Adele",\n'
         '    "description": "Մելանխոլիկ բալլադ զղջման և կորցրած կապի մասին։",\n'
         '    "youtube": "https://www.youtube.com/watch?v=YQHsXMglC9A"\n'
-        '  },\n'
-        '  ...\n'
-        ']\n\n'
+        "  },\n"
+        "  ...\n"
+        "]\n\n"
         "Մի՛ գրիր բացատրություններ, միայն ցուցակը՝ կոդի բլոկի մեջ։"
     )
 
@@ -85,6 +90,7 @@ def generate_songs_random() -> List[Dict[str, str]]:
     except Exception as e:
         print("❌ GPT structured վերադարձը ձախողվեց:", e)
         return parse_fallback_list(response)
+
 
 def generate_movies_for_mood(mood: str) -> list[dict]:
     system_prompt = (
@@ -109,8 +115,6 @@ def generate_movies_for_mood(mood: str) -> list[dict]:
     except Exception as e:
         print("❌ GPT վերադարձը չի կարող վերածվել structured ֆիլմերի ցուցակի:", e)
         return []
-
-
 
 
 def generate_quotes_for_mood(mood: str) -> str:
@@ -138,21 +142,21 @@ def ask_gpt(system_prompt: str, mood: str) -> str:
             model="gpt-4o",
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Ես հիմա զգում եմ՝ {mood}"}
+                {"role": "user", "content": f"Ես հիմա զգում եմ՝ {mood}"},
             ],
-            temperature=0.9
+            temperature=0.9,
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
         return f"❌ GPT սխալ՝ {e}"
-    
-    
+
 
 def clean_gpt_descriptions(text: str) -> List[str]:
     """Մաքրում է GPT վերադարձած կոդաբլոկը և առանձնացնում միայն նկարագրությունները"""
     raw = re.sub(r"```(?:python)?\s*([\s\S]*?)\s*```", r"\1", text).strip()
     lines = raw.splitlines()
     return [line.split(". ", 1)[-1].strip() for line in lines if line.strip()]
+
 
 def describe_songs_llm(song_titles: List[str]) -> List[str]:
     """Ստանում է երգերի անունների լիստ և վերադարձնում է նկարագրությունների լիստ"""
@@ -166,5 +170,5 @@ def describe_songs_llm(song_titles: List[str]) -> List[str]:
     for i, title in enumerate(song_titles, 1):
         prompt += f"{i}. {title}\n"
 
-    response = ask_gpt(prompt, "") 
+    response = ask_gpt(prompt, "")
     return clean_gpt_descriptions(response)

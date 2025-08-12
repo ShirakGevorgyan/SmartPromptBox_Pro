@@ -8,25 +8,30 @@ from aiogram.client.default import DefaultBotProperties
 from app.telegram_bot.handlers.mood_handler import router
 
 
-mock_songs = [{
-    "title": "Song 1",
-    "artist": "Artist 1",
-    "description": "Mood-based song 1",
-    "youtube": "https://youtube.com/song1",
-}]
-mock_movies = [{
-    "title": "Movie 1",
-    "genre": "Drama",
-    "director": "Director 1",
-    "trailer_url": "https://youtube.com/trailer1",
-    "watch_url": "https://imdb.com/movie1",
-}]
+mock_songs = [
+    {
+        "title": "Song 1",
+        "artist": "Artist 1",
+        "description": "Mood-based song 1",
+        "youtube": "https://youtube.com/song1",
+    }
+]
+mock_movies = [
+    {
+        "title": "Movie 1",
+        "genre": "Drama",
+        "director": "Director 1",
+        "trailer_url": "https://youtube.com/trailer1",
+        "watch_url": "https://imdb.com/movie1",
+    }
+]
 mock_quotes = "1. Keep going!\n2. Never give up!\n3. Believe in yourself.\n4. Smile.\n5. Enjoy life."
 mock_image_prompts = ["A sunny beach", "A cozy mountain cabin"]
 mock_images = [
     ("A sunny beach", "https://example.com/image1.png"),
     ("A cozy mountain cabin", "https://example.com/image2.png"),
 ]
+
 
 @pytest.mark.asyncio
 async def test_mood_flow_e2e():
@@ -61,11 +66,23 @@ async def test_mood_flow_e2e():
     with (
         patch.object(Message, "answer", new=mock_answer),
         patch.object(Message, "answer_photo", new=mock_answer_photo),
-        patch("app.llm.mood_inferencer.generate_songs_for_mood", return_value=mock_songs),
-        patch("app.llm.mood_inferencer.generate_movies_for_mood", return_value=mock_movies),
-        patch("app.llm.mood_inferencer.generate_quotes_for_mood", return_value=mock_quotes),
-        patch("app.llm.image_generator.generate_image_prompts_from_mood", return_value=mock_image_prompts),
-        patch("app.llm.image_generator.generate_images_from_prompts", return_value=mock_images),
+        patch(
+            "app.llm.mood_inferencer.generate_songs_for_mood", return_value=mock_songs
+        ),
+        patch(
+            "app.llm.mood_inferencer.generate_movies_for_mood", return_value=mock_movies
+        ),
+        patch(
+            "app.llm.mood_inferencer.generate_quotes_for_mood", return_value=mock_quotes
+        ),
+        patch(
+            "app.llm.image_generator.generate_image_prompts_from_mood",
+            return_value=mock_image_prompts,
+        ),
+        patch(
+            "app.llm.image_generator.generate_images_from_prompts",
+            return_value=mock_images,
+        ),
     ):
         prompts = [
             "🧠 Mood Assistant",
@@ -94,6 +111,12 @@ async def test_mood_flow_e2e():
     assert any("տրամադրություն" in c.lower() for c in calls)
     assert any("երգ" in c.lower() or "չհաջողվեց" in c.lower() for c in calls)
     assert any("ֆիլմ" in c.lower() or "չհաջողվեց" in c.lower() for c in calls)
-    assert any("մեջբերում" in c.lower() or "ներշնչող" in c.lower() or "չհաջողվեց" in c.lower() for c in calls)
-    assert any("նկար" in c.lower() or "նկարագրություն" in c.lower() or "չհաջողվեց" in c.lower() for c in calls)
+    assert any(
+        "մեջբերում" in c.lower() or "ներշնչող" in c.lower() or "չհաջողվեց" in c.lower()
+        for c in calls
+    )
+    assert any(
+        "նկար" in c.lower() or "նկարագրություն" in c.lower() or "չհաջողվեց" in c.lower()
+        for c in calls
+    )
     assert any("գլխավոր մենյու" in c.lower() for c in calls)

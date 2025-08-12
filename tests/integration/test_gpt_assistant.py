@@ -3,7 +3,12 @@ from unittest.mock import AsyncMock, patch
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.data.models.base import Base
-from app.llm.assistant import gpt_assistant_conversation, get_or_create_user, detect_user_mood, extract_names
+from app.llm.assistant import (
+    gpt_assistant_conversation,
+    get_or_create_user,
+    detect_user_mood,
+    extract_names,
+)
 from app.utils.summarizer import summarize_history
 
 
@@ -20,6 +25,7 @@ def db_session():
     session.close()
     Base.metadata.drop_all(bind=engine)
 
+
 @pytest.mark.asyncio
 async def test_get_or_create_user_creates_user(db_session):
     user_id = "mochi_123"
@@ -35,6 +41,7 @@ async def test_detect_user_mood_positive():
     mood = detect_user_mood(history)
     assert mood == "positive"
 
+
 @pytest.mark.asyncio
 async def test_detect_user_mood_negative():
     history = [{"role": "user", "content": "I'm really sad and disappointed."}]
@@ -47,7 +54,7 @@ async def test_summarize_history_summary_mocked():
     fake_history = [
         {"role": "user", "content": "Բարև"},
         {"role": "assistant", "content": "Բարև քեզ"},
-        {"role": "user", "content": "Ի՞նչ ես կարողանում անել։"}
+        {"role": "user", "content": "Ի՞նչ ես կարողանում անել։"},
     ]
     with patch("app.utils.summarizer.get_openai_client") as mock_client:
         mock_instance = AsyncMock()
@@ -59,6 +66,7 @@ async def test_summarize_history_summary_mocked():
         result = await summarize_history(fake_history)
         assert "Ամփոփ" in result
 
+
 @pytest.mark.asyncio
 async def test_gpt_assistant_conversation(db_session):
     user_id = "mochi_456"
@@ -68,7 +76,7 @@ async def test_gpt_assistant_conversation(db_session):
         mock_instance = AsyncMock()
         mock_instance.chat.completions.create.return_value = AsyncMock(
             choices=[AsyncMock(message=AsyncMock(content="Բարև Մոչի ջան 😊"))],
-            usage=AsyncMock(prompt_tokens=100, completion_tokens=50, total_tokens=150)
+            usage=AsyncMock(prompt_tokens=100, completion_tokens=50, total_tokens=150),
         )
         mock_client.return_value = mock_instance
 
@@ -77,12 +85,9 @@ async def test_gpt_assistant_conversation(db_session):
             assert "Բարև" in result
 
 
-
 @pytest.mark.asyncio
 async def test_extract_names_missing():
-    history = [
-        {"role": "user", "content": "Բարև, ինչ կա չկա։"}
-    ]
+    history = [{"role": "user", "content": "Բարև, ինչ կա չկա։"}]
     user_name, bot_name = extract_names(history)
     assert user_name == ""
     assert bot_name == ""

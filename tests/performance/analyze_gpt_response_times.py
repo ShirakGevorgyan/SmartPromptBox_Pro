@@ -16,7 +16,9 @@ with open(LOG_FILE, "r", encoding="utf-8") as f:
     for line in f:
         try:
             timestamp_match = re.search(r"^([0-9\-: T]+)", line)
-            duration_match = re.search(r"\|\s*(OK|SLOW|FAIL)\s*\|\s*([\d.]+)\s*sec", line)
+            duration_match = re.search(
+                r"\|\s*(OK|SLOW|FAIL)\s*\|\s*([\d.]+)\s*sec", line
+            )
 
             if timestamp_match and duration_match:
                 timestamp_str = timestamp_match.group(1).strip()
@@ -35,10 +37,17 @@ if not timestamps:
     exit()
 
 plt.figure(figsize=(10, 6))
-plt.plot(timestamps, durations, marker="o", linestyle="-", color="blue", label="Response Time")
+plt.plot(
+    timestamps,
+    durations,
+    marker="o",
+    linestyle="-",
+    color="blue",
+    label="Response Time",
+)
 
-plt.axhline(y=4.0, color='orange', linestyle='--', label="⚠️ 4.0 sec threshold")
-plt.axhline(y=15.0, color='red', linestyle='--', label="❌ 15.0 sec FAIL")
+plt.axhline(y=4.0, color="orange", linestyle="--", label="⚠️ 4.0 sec threshold")
+plt.axhline(y=15.0, color="red", linestyle="--", label="❌ 15.0 sec FAIL")
 
 plt.xlabel("Ժամանակ")
 plt.ylabel("Պատասխանի տևողություն (վրկ)")

@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import AsyncMock, patch
 from app.utils.retry import retry_async
 
+
 @pytest.mark.asyncio
 async def test_retry_success_on_first_try():
     mock_fn = AsyncMock(return_value="✅ OK")
@@ -9,12 +10,16 @@ async def test_retry_success_on_first_try():
     assert result == "✅ OK"
     assert mock_fn.call_count == 1
 
+
 @pytest.mark.asyncio
 async def test_retry_success_after_retries():
-    mock_fn = AsyncMock(side_effect=[Exception("Fail"), Exception("Fail again"), "🎉 Success"])
+    mock_fn = AsyncMock(
+        side_effect=[Exception("Fail"), Exception("Fail again"), "🎉 Success"]
+    )
     result = await retry_async(mock_fn, retries=3, base_delay=0)
     assert result == "🎉 Success"
     assert mock_fn.call_count == 3
+
 
 @pytest.mark.asyncio
 async def test_retry_fails_after_all_attempts():
@@ -23,6 +28,7 @@ async def test_retry_fails_after_all_attempts():
         await retry_async(mock_fn, retries=3, base_delay=0)
     assert mock_fn.call_count == 3
 
+
 @pytest.mark.asyncio
 @patch("asyncio.sleep", new_callable=AsyncMock)
 async def test_retry_waits_between_attempts(mock_sleep):
@@ -30,4 +36,4 @@ async def test_retry_waits_between_attempts(mock_sleep):
     mock_fn = AsyncMock(side_effect=[Exception(), Exception(), "Done"])
     result = await retry_async(mock_fn, retries=3, base_delay=0.1)
     assert result == "Done"
-    assert mock_sleep.call_count == 2 
+    assert mock_sleep.call_count == 2

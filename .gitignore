@@ -26,6 +26,10 @@ actions-runner/
 
 .venv/
 
+.mypy_cache/
+
+.ruff_cache/
+
 tests/db/
 tests/logs/
 tests/performance/*.png

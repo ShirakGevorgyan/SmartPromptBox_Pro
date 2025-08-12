@@ -6,7 +6,6 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
-
 def generate_image_prompts_from_mood(mood: str) -> list[str]:
     system_prompt = (
         f"Օգտատերը զգում է '{mood}' տրամադրություն։ "
@@ -19,9 +18,9 @@ def generate_image_prompts_from_mood(mood: str) -> list[str]:
             model="gpt-4o",
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Ես հիմա զգում եմ՝ {mood}"}
+                {"role": "user", "content": f"Ես հիմա զգում եմ՝ {mood}"},
             ],
-            temperature=0.8
+            temperature=0.8,
         )
         content = response.choices[0].message.content.strip()
 
@@ -46,10 +45,7 @@ def generate_images_from_prompts(prompts: list[str]) -> list[tuple[str, str]]:
     for prompt in prompts:
         try:
             image_resp = client.images.generate(
-                model="dall-e-3",
-                prompt=prompt,
-                n=1,
-                size="1024x1024"
+                model="dall-e-3", prompt=prompt, n=1, size="1024x1024"
             )
             image_url = image_resp.data[0].url
             results.append((prompt.strip(), image_url))
