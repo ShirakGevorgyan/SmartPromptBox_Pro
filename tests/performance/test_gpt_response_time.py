@@ -13,7 +13,9 @@ LOG_FILE = os.path.join(os.path.dirname(__file__), "slow_gpt_log.txt")
 class FakeMessage:
     def __init__(self, text):
         self.message_id = 1
-        self.from_user = User(id=random.randint(1000, 9999), is_bot=False, first_name="Tester")
+        self.from_user = User(
+            id=random.randint(1000, 9999), is_bot=False, first_name="Tester"
+        )
         self.chat = Chat(id=self.from_user.id, type="private")
         self.date = datetime.now()
         self.text = text
@@ -53,13 +55,13 @@ async def test_gpt_response_time():
         "Ինչո՞ւ են մարդիկ սիրում արվեստը",
         "Ասա մի փիլիսոփայական միտք",
         "Խոսիր ընկերության մասին",
-        "Ուզում եմ մի փոքրիկ պատմվածք"
+        "Ուզում եմ մի փոքրիկ պատմվածք",
     ]
 
     text = random.choice(random_texts)
     message = FakeMessage(text=text)
     state = FakeFSMContext()
-    await state.set_state(GPTMemoryStates.chatting) 
+    await state.set_state(GPTMemoryStates.chatting)
 
     start = datetime.now()
     await continue_conversation(message, state)
@@ -77,7 +79,9 @@ async def test_gpt_response_time():
 
     os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
     with open(LOG_FILE, "a", encoding="utf-8") as f:
-        f.write(f"{datetime.now()} | {status} | {duration:.3f} sec | user_id={message.from_user.id} | Input: {message.text}\n")
+        f.write(
+            f"{datetime.now()} | {status} | {duration:.3f} sec | user_id={message.from_user.id} | Input: {message.text}\n"
+        )
 
     if status == "FAIL":
         pytest.fail(f"❌ GPT-ը պատասխանեց շատ դանդաղ՝ {duration:.3f} վայրկյան")

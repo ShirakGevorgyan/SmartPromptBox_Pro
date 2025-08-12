@@ -1,0 +1,47 @@
+repos:
+  # Base hygiene
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+      - id: check-added-large-files
+
+  # Ruff (lint + format)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.7
+    hooks:
+      - id: ruff
+        args: [--fix, --show-fixes]
+      - id: ruff-format
+
+  # Bandit (security) — very soft: scan only app/, skip noisy rules, don't block CI
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.9
+    hooks:
+      - id: bandit
+        args:
+          - -q
+          - -r
+          - app
+          - -x
+          - tests
+          - --severity-level
+          - high
+          - --confidence-level
+          - high
+          - -s
+          - B110,B311
+          - --exit-zero
+        pass_filenames: false
+
+
+
+  # Mypy (static typing) — softer via config file
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.2
+    hooks:
+      - id: mypy
+        args: ["--config-file", "mypy.ini"]

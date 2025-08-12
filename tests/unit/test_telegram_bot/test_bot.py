@@ -38,5 +38,9 @@ async def test_start_command_handler_response():
     for fragment in ["Mood", "Ֆիլմեր", "Սերիալներ", "Երգեր", "Նկար"]:
         assert fragment in plain, f"Fragment '{fragment}' not found in:\n{plain}"
 
-    assert isinstance(message.reply_markup, ReplyKeyboardMarkup), "reply_markup must be ReplyKeyboardMarkup"
-    assert message.reply_markup.keyboard == main_menu.keyboard, "main menu keyboard mismatch"
+    assert isinstance(
+        message.reply_markup, ReplyKeyboardMarkup
+    ), "reply_markup must be ReplyKeyboardMarkup"
+    assert (
+        message.reply_markup.keyboard == main_menu.keyboard
+    ), "main menu keyboard mismatch"

@@ -27,7 +27,7 @@ start_all=$(date +%s)
 
 for file in $test_files; do
     ((total+=1))
-    relative_path="${file#./}" 
+    relative_path="${file#./}"
     echo -n "🚧 $relative_path ... " | tee -a "$LOG_FILE"
 
     start_test=$(date +%s)

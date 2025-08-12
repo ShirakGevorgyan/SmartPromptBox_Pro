@@ -7,8 +7,9 @@ from app.telegram_bot.handlers.series_menu_handler import (
     send_random_series,
     handle_description,
     handle_series_name,
-    handle_series_genre
+    handle_series_genre,
 )
+
 
 @pytest.mark.asyncio
 @patch("app.telegram_bot.handlers.series_menu_handler.get_random_series_llm")
@@ -29,8 +30,11 @@ async def test_send_random_series(mock_random_series_llm):
 
     await send_random_series(mock_msg)
 
+
 @pytest.mark.asyncio
-@patch("app.telegram_bot.handlers.series_menu_handler.suggest_series_by_description_llm")
+@patch(
+    "app.telegram_bot.handlers.series_menu_handler.suggest_series_by_description_llm"
+)
 async def test_handle_description(mock_suggest_llm):
     mock_suggest_llm.return_value = (
         "🎥 Վերնագիր՝ The Crown (2016)\n"
@@ -50,6 +54,7 @@ async def test_handle_description(mock_suggest_llm):
     mock_state.clear = AsyncMock()
 
     await handle_description(mock_msg, mock_state)
+
 
 @pytest.mark.asyncio
 @patch("app.telegram_bot.handlers.series_menu_handler.get_series_details_by_name_llm")
@@ -72,6 +77,7 @@ async def test_handle_series_name(mock_series_details):
 
     await handle_series_name(mock_msg, mock_state)
 
+
 @pytest.mark.asyncio
 @patch("app.telegram_bot.handlers.series_menu_handler.get_series_by_genre_llm")
 async def test_handle_series_genre_valid(mock_genre_llm):
@@ -93,6 +99,7 @@ async def test_handle_series_genre_valid(mock_genre_llm):
     mock_state.set_state = AsyncMock()
 
     await handle_series_genre(mock_msg, mock_state)
+
 
 @pytest.mark.asyncio
 async def test_handle_series_genre_invalid():

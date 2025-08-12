@@ -46,9 +46,17 @@ async def test_mood_chosen_updates_state_and_replies():
 
 
 @pytest.mark.asyncio
-@patch("app.telegram_bot.handlers.mood_handler.generate_songs_for_mood", return_value=[
-    {"title": "Test Song", "artist": "Test Artist", "description": "Test Desc", "youtube": "https://youtu.be/test"}
-])
+@patch(
+    "app.telegram_bot.handlers.mood_handler.generate_songs_for_mood",
+    return_value=[
+        {
+            "title": "Test Song",
+            "artist": "Test Artist",
+            "description": "Test Desc",
+            "youtube": "https://youtu.be/test",
+        }
+    ],
+)
 async def test_mood_generate_songs(mock_gen):
     message = MockMessage("🎵 5 երգ")
     state = MockFSMContext()
@@ -60,9 +68,18 @@ async def test_mood_generate_songs(mock_gen):
 
 
 @pytest.mark.asyncio
-@patch("app.telegram_bot.handlers.mood_handler.generate_movies_for_mood", return_value=[
-    {"title": "Test Movie", "genre": "Comedy", "director": "Someone", "trailer_url": "http://t", "watch_url": "http://w"}
-])
+@patch(
+    "app.telegram_bot.handlers.mood_handler.generate_movies_for_mood",
+    return_value=[
+        {
+            "title": "Test Movie",
+            "genre": "Comedy",
+            "director": "Someone",
+            "trailer_url": "http://t",
+            "watch_url": "http://w",
+        }
+    ],
+)
 async def test_mood_generate_movies(mock_gen):
     message = MockMessage("🎬 5 ֆիլմ")
     state = MockFSMContext()
@@ -73,7 +90,10 @@ async def test_mood_generate_movies(mock_gen):
 
 
 @pytest.mark.asyncio
-@patch("app.telegram_bot.handlers.mood_handler.generate_quotes_for_mood", return_value="Quote 1\nQuote 2")
+@patch(
+    "app.telegram_bot.handlers.mood_handler.generate_quotes_for_mood",
+    return_value="Quote 1\nQuote 2",
+)
 async def test_mood_generate_quotes(mock_gen):
     message = MockMessage("💬 5 մեջբերում")
     state = MockFSMContext()
@@ -84,11 +104,14 @@ async def test_mood_generate_quotes(mock_gen):
 
 
 @pytest.mark.asyncio
-@patch("app.telegram_bot.handlers.mood_handler.generate_image_prompts_from_mood", return_value=["sunrise", "forest"])
-@patch("app.telegram_bot.handlers.mood_handler.generate_images_from_prompts", return_value=[
-    ("sunrise", "http://image1.jpg"),
-    ("forest", "http://image2.jpg")
-])
+@patch(
+    "app.telegram_bot.handlers.mood_handler.generate_image_prompts_from_mood",
+    return_value=["sunrise", "forest"],
+)
+@patch(
+    "app.telegram_bot.handlers.mood_handler.generate_images_from_prompts",
+    return_value=[("sunrise", "http://image1.jpg"), ("forest", "http://image2.jpg")],
+)
 async def test_mood_generate_images(mock_img_gen, mock_prompt_gen):
     message = MockMessage("🖼 2 նկարների նկարագրություն")
     state = MockFSMContext()

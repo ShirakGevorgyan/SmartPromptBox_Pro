@@ -9,15 +9,13 @@ from datetime import datetime
 
 from app.data.database import SessionLocal
 from app.data.models.memory_model import UserMemory
-from app.data.memory_service import (
-    load_history,
-    save_history
-)
+from app.data.memory_service import load_history, save_history
 
 from app.utils.retry import retry_async
 from app.utils.summarizer import summarize_history
 
 from functools import lru_cache
+
 
 @lru_cache()
 def get_openai_client() -> AsyncOpenAI:
@@ -31,7 +29,13 @@ def get_openai_client() -> AsyncOpenAI:
 def get_or_create_user(session: Session, user_id: str) -> UserMemory:
     user = session.query(UserMemory).filter_by(user_id=user_id).first()
     if not user:
-        user = UserMemory(user_id=user_id, user_name=None, bot_name="Նարե", last_mood="neutral", history=json.dumps([]))
+        user = UserMemory(
+            user_id=user_id,
+            user_name=None,
+            bot_name="Նարե",
+            last_mood="neutral",
+            history=json.dumps([]),
+        )
         session.add(user)
         session.commit()
     return user
@@ -44,7 +48,9 @@ def detect_user_mood(history: List[Dict[str, str]]) -> str:
         return "neutral"
     blob = TextBlob(recent_text)
     polarity = blob.sentiment.polarity
-    return "positive" if polarity > 0.3 else "negative" if polarity < -0.3 else "neutral"
+    return (
+        "positive" if polarity > 0.3 else "negative" if polarity < -0.3 else "neutral"
+    )
 
 
 def extract_names(history: List[Dict[str, str]]) -> Tuple[str, str]:
@@ -71,7 +77,9 @@ async def gpt_assistant_conversation(user_id: str, new_message: str) -> str:
         history = load_history(session, user_id)
         history.append({"role": "user", "content": new_message})
         valid_roles = {"user", "assistant", "system"}
-        history = [m for m in history if m.get("role") in valid_roles and m.get("content")]
+        history = [
+            m for m in history if m.get("role") in valid_roles and m.get("content")
+        ]
         user_name, new_bot_name = extract_names(history)
         mood = detect_user_mood(history)
 
@@ -85,10 +93,13 @@ async def gpt_assistant_conversation(user_id: str, new_message: str) -> str:
         if len(history) > 10:
             summary = await summarize_history(history[:-5])
             history = history[-5:]
-            history.insert(0, {
-                "role": "system",
-                "content": f"📌 Նախորդ խոսակցությունների ամփոփում՝ {summary}"
-            })
+            history.insert(
+                0,
+                {
+                    "role": "system",
+                    "content": f"📌 Նախորդ խոսակցությունների ամփոփում՝ {summary}",
+                },
+            )
 
         prompt = f"""
 Դու կոչվում ես {user.bot_name}։ Դու խելացի, մարդանման AI օգնական ես, որը միշտ խոսում է հստակ, գեղեցիկ և տրամաբանական հայերենով։
@@ -99,11 +110,11 @@ async def gpt_assistant_conversation(user_id: str, new_message: str) -> str:
 
 ❌ Երբ չես հասկանում հարցը, մի հորինիր։ Փոխարենը՝ հստակ, պարզ լեզվով հարցրու օգտատիրոջից՝ ինչ նկատի ուներ։
 
-✅ Խոսքդ թող լինի հակիրճ, պարզ, հստակ, առանց բարդ բառերի կամ անհամատեղելի արտահայտությունների։  
-✅ Դու կարող ես օգտագործել էմոջիներ, երբ համապատասխանում է տրամադրությանը։  
+✅ Խոսքդ թող լինի հակիրճ, պարզ, հստակ, առանց բարդ բառերի կամ անհամատեղելի արտահայտությունների։
+✅ Դու կարող ես օգտագործել էմոջիներ, երբ համապատասխանում է տրամադրությանը։
 ✅ Երբ օգտատերը բարևում է, դու պատասխանիր ջերմորեն ու ներկայացիր՝ առանց հորինելու բաներ։
 
-Օրինակ՝ երբ օգտատերը գրում է «Բարև», դու կարող ես ասել՝  
+Օրինակ՝ երբ օգտատերը գրում է «Բարև», դու կարող ես ասել՝
 «Բարև Մո՛չի ջան 😊 Ես Նարեն եմ։ Ուրախ եմ քեզ տեսնել։ Ինչով կարող եմ օգնել։»
 
 Իմացի՛ր, որ դու պետք է խոսես ինչպես վստահելի մարդը՝ ոչ երբեք չկապակցված նախադասություններով։
@@ -118,13 +129,14 @@ async def gpt_assistant_conversation(user_id: str, new_message: str) -> str:
 
         messages = [{"role": "system", "content": prompt}] + history
         client = get_openai_client()
+
         async def ask_gpt():
             return await client.chat.completions.create(
                 model="gpt-4o",
                 messages=messages,
                 temperature=0.85,
                 max_tokens=600,
-                timeout=30
+                timeout=30,
             )
 
         response = await retry_async(ask_gpt)

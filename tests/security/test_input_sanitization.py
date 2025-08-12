@@ -21,19 +21,29 @@ class FakeFSMContext:
     def __init__(self):
         self._data = {}
 
-    async def set_state(self, state): pass
-    async def update_data(self, **kwargs): self._data.update(kwargs)
-    async def clear(self): self._data.clear()
-    async def get_data(self): return self._data
+    async def set_state(self, state):
+        pass
+
+    async def update_data(self, **kwargs):
+        self._data.update(kwargs)
+
+    async def clear(self):
+        self._data.clear()
+
+    async def get_data(self):
+        return self._data
 
 
-@pytest.mark.parametrize("malicious_input", [
-    "<script>alert('XSS')</script>",
-    "'; DROP TABLE users; --",
-    "🔥" * 1000,
-    "SELECT * FROM users WHERE username = 'admin'",
-    "`rm -rf /`",
-])
+@pytest.mark.parametrize(
+    "malicious_input",
+    [
+        "<script>alert('XSS')</script>",
+        "'; DROP TABLE users; --",
+        "🔥" * 1000,
+        "SELECT * FROM users WHERE username = 'admin'",
+        "`rm -rf /`",
+    ],
+)
 @pytest.mark.asyncio
 async def test_continue_conversation_sanitization(malicious_input):
     message = FakeMessage(text=malicious_input)
@@ -42,6 +52,8 @@ async def test_continue_conversation_sanitization(malicious_input):
     try:
         await continue_conversation(message, state)
     except Exception as e:
-        pytest.fail(f"Bot crashed on malicious input: {malicious_input}\nError: {str(e)}")
+        pytest.fail(
+            f"Bot crashed on malicious input: {malicious_input}\nError: {str(e)}"
+        )
 
     message.answer.assert_called()

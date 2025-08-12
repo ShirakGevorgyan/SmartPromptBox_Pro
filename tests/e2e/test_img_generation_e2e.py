@@ -10,10 +10,7 @@ from app.telegram_bot.handlers.img_handler import router
 
 @pytest.mark.asyncio
 async def test_img_generation_e2e(tmp_path):
-    bot = Bot(
-    token="123456:TESTTOKEN",
-    default=DefaultBotProperties(parse_mode="HTML")
-)
+    bot = Bot(token="123456:TESTTOKEN", default=DefaultBotProperties(parse_mode="HTML"))
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(router)
 
@@ -49,7 +46,10 @@ async def test_img_generation_e2e(tmp_path):
         patch.object(Message, "answer", new=mock_answer),
         patch.object(Message, "answer_photo", new=mock_answer_photo),
         # ✅ Ահա ճիշտ patch-ը՝ img_handler-ի մեջ է օգտագործվում
-        patch("app.telegram_bot.handlers.img_handler.generate_image", return_value=str(fake_img_path)),
+        patch(
+            "app.telegram_bot.handlers.img_handler.generate_image",
+            return_value=str(fake_img_path),
+        ),
     ):
         start_msg = Message(
             message_id=1,

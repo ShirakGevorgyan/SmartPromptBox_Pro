@@ -12,11 +12,13 @@ def test_series_states_exist_and_correct():
     }
 
     actual_states = {
-        attr for attr in dir(SeriesStates)
+        attr
+        for attr in dir(SeriesStates)
         if not attr.startswith("_") and isinstance(getattr(SeriesStates, attr), object)
     }
 
     assert expected_states.issubset(actual_states)
+
 
 def test_song_states_exist_and_correct():
     expected_states = {
@@ -26,7 +28,8 @@ def test_song_states_exist_and_correct():
     }
 
     actual_states = {
-        attr for attr in dir(SongStates)
+        attr
+        for attr in dir(SongStates)
         if not attr.startswith("_") and isinstance(getattr(SongStates, attr), object)
     }
 

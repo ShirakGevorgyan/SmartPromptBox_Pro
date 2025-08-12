@@ -24,15 +24,14 @@ mock_series_result = """
 ⬇️ Ընտրիր հաջորդ քայլը։
 """
 
+
 def create_bot_and_dispatcher():
     series_router = copy.deepcopy(series_router_original)
-    bot = Bot(
-    token="123456:TESTTOKEN",
-    default=DefaultBotProperties(parse_mode="HTML")
-)
+    bot = Bot(token="123456:TESTTOKEN", default=DefaultBotProperties(parse_mode="HTML"))
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(series_router)
     return bot, dp
+
 
 @pytest.mark.asyncio
 async def test_random_series_e2e():
@@ -44,17 +43,23 @@ async def test_random_series_e2e():
         from_user=user,
         chat=chat,
         date=datetime.now(),
-        text="🎲 Պատահական սերիալ"
+        text="🎲 Պատահական սերիալ",
     )
     update = Update(update_id=1, message=message)
 
-    with patch("app.telegram_bot.handlers.series_menu_handler.get_random_series_llm", return_value=mock_series_result):
+    with patch(
+        "app.telegram_bot.handlers.series_menu_handler.get_random_series_llm",
+        return_value=mock_series_result,
+    ):
         calls = []
+
         async def mock_answer(self, text, **kwargs):
             calls.append(text)
+
         with patch.object(Message, "answer", new=mock_answer):
             await dp.feed_update(bot=bot, update=update)
         assert any("⬇️" in c for c in calls)
+
 
 @pytest.mark.asyncio
 async def test_series_by_description_e2e():
@@ -69,17 +74,23 @@ async def test_series_by_description_e2e():
         from_user=user,
         chat=chat,
         date=datetime.now(),
-        text="Something dark and twisted"
+        text="Something dark and twisted",
     )
     update = Update(update_id=2, message=message)
 
-    with patch("app.telegram_bot.handlers.series_menu_handler.suggest_series_by_description_llm", return_value=mock_series_result):
+    with patch(
+        "app.telegram_bot.handlers.series_menu_handler.suggest_series_by_description_llm",
+        return_value=mock_series_result,
+    ):
         calls = []
+
         async def mock_answer(self, text, **kwargs):
             calls.append(text)
+
         with patch.object(Message, "answer", new=mock_answer):
             await dp.feed_update(bot=bot, update=update)
         assert any("⬇️" in c for c in calls)
+
 
 @pytest.mark.asyncio
 async def test_series_by_name_e2e():
@@ -94,17 +105,23 @@ async def test_series_by_name_e2e():
         from_user=user,
         chat=chat,
         date=datetime.now(),
-        text="Breaking Bad"
+        text="Breaking Bad",
     )
     update = Update(update_id=3, message=message)
 
-    with patch("app.telegram_bot.handlers.series_menu_handler.get_series_details_by_name_llm", return_value=mock_series_result):
+    with patch(
+        "app.telegram_bot.handlers.series_menu_handler.get_series_details_by_name_llm",
+        return_value=mock_series_result,
+    ):
         calls = []
+
         async def mock_answer(self, text, **kwargs):
             calls.append(text)
+
         with patch.object(Message, "answer", new=mock_answer):
             await dp.feed_update(bot=bot, update=update)
         assert any("⬇️" in c for c in calls)
+
 
 @pytest.mark.asyncio
 async def test_top_10_series_e2e():
@@ -116,14 +133,19 @@ async def test_top_10_series_e2e():
         from_user=user,
         chat=chat,
         date=datetime.now(),
-        text="🔥 Լավագույն 10 սերիալ"
+        text="🔥 Լավագույն 10 սերիալ",
     )
     update = Update(update_id=4, message=message)
 
-    with patch("app.telegram_bot.handlers.series_menu_handler.get_top_10_series_llm", return_value=mock_series_result):
+    with patch(
+        "app.telegram_bot.handlers.series_menu_handler.get_top_10_series_llm",
+        return_value=mock_series_result,
+    ):
         calls = []
+
         async def mock_answer(self, text, **kwargs):
             calls.append(text)
+
         with patch.object(Message, "answer", new=mock_answer):
             await dp.feed_update(bot=bot, update=update)
         assert any("⬇️" in c for c in calls)

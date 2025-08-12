@@ -30,13 +30,13 @@ def test_clean_gpt_code_block():
     assert "print" in result
     assert "```" not in result
 
+
 def test_parse_fallback_list_parses_correctly():
     response = "Adele - Hello\nColdplay - Fix You"
     fallback = mood_inferencer.parse_fallback_list(response)
     assert len(fallback) == 2
     assert fallback[0]["title"] == "Hello"
     assert fallback[0]["artist"] == "Adele"
-
 
 
 @patch("app.llm.mood_inferencer.ask_gpt")
@@ -72,5 +72,3 @@ def test_describe_songs_llm(mock_ask_gpt):
     result = mood_inferencer.describe_songs_llm(["Adele - Hello", "Coldplay - Fix You"])
     assert len(result) == 2
     assert "սիրո կորուստի" in result[0]
-
-

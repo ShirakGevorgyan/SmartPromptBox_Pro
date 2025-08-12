@@ -2,15 +2,16 @@ from unittest.mock import patch, MagicMock
 from app.llm import series_picker
 
 MOCK_SERIES_TEXT = """
-🎥 Վերնագիր՝ Breaking Bad (2008)  
-🎭 Ժանրը՝ Դրամա  
-🎬 Ռեժիսոր՝ Vince Gilligan  
-🎭 Դերասաններ՝ Bryan Cranston, Aaron Paul, Anna Gunn, Bob Odenkirk, Dean Norris  
-📜 Սյուժե՝ Քիմիայի ուսուցիչը դառնում է մետամֆետամինի արտադրող՝ ֆինանսական խնդիրներից ելնելով։  
-📊 IMDb գնահատական՝ 9.5  
-▶️ Տրեյլեր՝ [Դիտել YouTube-ում](https://youtube.com)  
+🎥 Վերնագիր՝ Breaking Bad (2008)
+🎭 Ժանրը՝ Դրամա
+🎬 Ռեժիսոր՝ Vince Gilligan
+🎭 Դերասաններ՝ Bryan Cranston, Aaron Paul, Anna Gunn, Bob Odenkirk, Dean Norris
+📜 Սյուժե՝ Քիմիայի ուսուցիչը դառնում է մետամֆետամինի արտադրող՝ ֆինանսական խնդիրներից ելնելով։
+📊 IMDb գնահատական՝ 9.5
+▶️ Տրեյլեր՝ [Դիտել YouTube-ում](https://youtube.com)
 🎞️ Դիտելու հղում՝ [IMDB](https://imdb.com)
 """
+
 
 @patch("app.llm.series_picker.replace_plot_with_refined")
 @patch("app.llm.series_picker.client")
@@ -33,7 +34,9 @@ def test_suggest_series_by_description_llm(mock_client, mock_replace_plot):
     ]
     mock_replace_plot.return_value = MOCK_SERIES_TEXT
 
-    result = series_picker.suggest_series_by_description_llm("թմրանյութերի բիզնեսում հայտնված ուսուցիչ")
+    result = series_picker.suggest_series_by_description_llm(
+        "թմրանյութերի բիզնեսում հայտնված ուսուցիչ"
+    )
     assert "Bryan Cranston" in result
 
 

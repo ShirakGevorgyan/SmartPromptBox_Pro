@@ -16,7 +16,7 @@ async def test_continue_conversation_flow(
     mock_session_local,
     mock_update_session_info,
     mock_get_or_create_user_session,
-    mock_gpt_assistant_conversation
+    mock_gpt_assistant_conversation,
 ):
     mock_gpt_assistant_conversation.return_value = "Սա մոկված պատասխան է"
 
@@ -36,7 +36,7 @@ async def test_continue_conversation_flow(
     message.from_user = MagicMock(id=123456)
     message.bot.delete_message = AsyncMock()
     message.answer = AsyncMock(return_value=MagicMock(message_id=42))
-    
+
     await continue_conversation(message, state)
 
     data = await state.get_data()

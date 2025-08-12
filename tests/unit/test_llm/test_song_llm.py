@@ -36,7 +36,9 @@ def test_generate_songs_by_genre(mock_ask_gpt, fake_song_list_response):
 @patch("app.llm.song_llm.ask_gpt")
 def test_generate_songs_by_description(mock_ask_gpt, fake_song_list_response):
     mock_ask_gpt.return_value = fake_song_list_response
-    result = song_llm.generate_songs_by_description("փափուկ երաժշտություն անձրևային օրվա համար")
+    result = song_llm.generate_songs_by_description(
+        "փափուկ երաժշտություն անձրևային օրվա համար"
+    )
     assert isinstance(result, list)
     assert "title" in result[0]
     assert "youtube" in result[1]

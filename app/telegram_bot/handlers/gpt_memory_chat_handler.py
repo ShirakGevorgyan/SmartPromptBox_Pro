@@ -17,10 +17,12 @@ async def start_conversation(message: Message, state: FSMContext):
     await state.set_state(GPTMemoryStates.chatting)
     await state.update_data(chat_history=[], message_ids=[])
 
-    start_msg = await message.answer("🧠 Բարև, գրիր որևէ բան և ես կպատասխանեմ։", reply_markup=gpt_reply_markup)
+    start_msg = await message.answer(
+        "🧠 Բարև, գրիր որևէ բան և ես կպատասխանեմ։", reply_markup=gpt_reply_markup
+    )
     await state.update_data(message_ids=[start_msg.message_id])
-    
-    
+
+
 @router.message(GPTMemoryStates.chatting)
 async def continue_conversation(message: Message, state: FSMContext):
     user_input = message.text
@@ -36,14 +38,18 @@ async def continue_conversation(message: Message, state: FSMContext):
     if user_input == "🧹 Մաքրել զրույցը":
         for mid in message_ids:
             try:
-                await message.bot.delete_message(chat_id=message.chat.id, message_id=mid)
+                await message.bot.delete_message(
+                    chat_id=message.chat.id, message_id=mid
+                )
             except Exception as e:
                 print(f"❌ Failed to delete message {mid}: {e}")
         await state.clear()
         await message.answer("📭 Զրույցը մաքրված է։ Կարող ես սկսել նորից։")
         await state.set_state(GPTMemoryStates.chatting)
         await state.update_data(chat_history=[], message_ids=[])
-        start_msg = await message.answer("🧠 Բարև, գրիր որևէ բան և ես կպատասխանեմ։", reply_markup=gpt_reply_markup)
+        start_msg = await message.answer(
+            "🧠 Բարև, գրիր որևէ բան և ես կպատասխանեմ։", reply_markup=gpt_reply_markup
+        )
         await state.update_data(message_ids=[start_msg.message_id])
         return
 
@@ -61,7 +67,9 @@ async def continue_conversation(message: Message, state: FSMContext):
         finally:
             db.close()
 
-        reply = await gpt_assistant_conversation(user_id=user_id, new_message=user_input)
+        reply = await gpt_assistant_conversation(
+            user_id=user_id, new_message=user_input
+        )
 
         history.append({"role": "assistant", "content": reply})
         reply_msg = await message.answer(reply)

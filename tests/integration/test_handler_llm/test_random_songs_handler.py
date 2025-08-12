@@ -9,6 +9,7 @@ from app.telegram_bot.handlers.random_songs_handler import (
     handle_artist_input,
 )
 
+
 @pytest.mark.asyncio
 @patch("app.telegram_bot.handlers.random_songs_handler.generate_songs_by_genre")
 async def test_handle_genre_input_valid(mock_genre_llm):
@@ -17,7 +18,7 @@ async def test_handle_genre_input_valid(mock_genre_llm):
             "title": "Shape of You",
             "artist": "Ed Sheeran",
             "description": "Ռիթմիկ փոփ երգ սիրային պատմության մասին։",
-            "youtube": "https://youtube.com"
+            "youtube": "https://youtube.com",
         }
     ]
 
@@ -40,7 +41,7 @@ async def test_handle_description_input(mock_desc_llm):
             "title": "Let Her Go",
             "artist": "Passenger",
             "description": "Տխուր բալլադ, կորուստի և կարոտի մասին։",
-            "youtube": "https://youtube.com"
+            "youtube": "https://youtube.com",
         }
     ]
 
@@ -63,7 +64,7 @@ async def test_handle_artist_input(mock_artist_llm):
             "title": "Someone Like You",
             "artist": "Adele",
             "description": "Հզոր վոկալային կատարում կորած սիրո մասին։",
-            "youtube": "https://youtube.com"
+            "youtube": "https://youtube.com",
         }
     ]
 

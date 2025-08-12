@@ -11,29 +11,31 @@ from app.llm import image_generator
 
 @pytest.mark.asyncio
 async def test_mood_image_flow(monkeypatch):
-
     mock_prompts = ["Արևածագ լճի վրա", "Աղջիկը մենակ նստած է սրճարանում"]
-    mock_images = [(mock_prompts[0], "https://test.image/1"), (mock_prompts[1], "https://test.image/2")]
+    mock_images = [
+        (mock_prompts[0], "https://test.image/1"),
+        (mock_prompts[1], "https://test.image/2"),
+    ]
 
-    monkeypatch.setattr(image_generator, "generate_image_prompts_from_mood", lambda mood: mock_prompts)
-    monkeypatch.setattr(image_generator, "generate_images_from_prompts", lambda prompts: mock_images)
-
+    monkeypatch.setattr(
+        image_generator, "generate_image_prompts_from_mood", lambda mood: mock_prompts
+    )
+    monkeypatch.setattr(
+        image_generator, "generate_images_from_prompts", lambda prompts: mock_images
+    )
 
     async def fake_answer(self, text, **kwargs):
         print(f"[Mocked answer]: {text}")
 
     monkeypatch.setattr(Message, "answer", fake_answer)
-    
+
     async def fake_answer_photo(self, photo, **kwargs):
         print(f"[Mocked photo answer]: {photo}")
 
     monkeypatch.setattr(Message, "answer_photo", fake_answer_photo)
 
     storage = MemoryStorage()
-    bot = Bot(
-    token="123456:TESTTOKEN",
-    default=DefaultBotProperties(parse_mode="HTML")
-)
+    bot = Bot(token="123456:TESTTOKEN", default=DefaultBotProperties(parse_mode="HTML"))
     dp = Dispatcher(storage=storage)
     dp.include_router(router)
 
@@ -46,7 +48,7 @@ async def test_mood_image_flow(monkeypatch):
         chat=chat,
         text="🖼 2 նկարների նկարագրություն",
         date=datetime.now(),
-        message_thread_id=None
+        message_thread_id=None,
     )
 
     update = Update(update_id=99999, message=message)

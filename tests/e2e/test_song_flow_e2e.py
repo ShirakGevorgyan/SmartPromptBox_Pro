@@ -7,12 +7,10 @@ from datetime import datetime
 from aiogram.client.default import DefaultBotProperties
 from app.telegram_bot.handlers.random_songs_handler import router
 
+
 @pytest.mark.asyncio
 async def test_song_random_flow_e2e():
-    bot = Bot(
-    token="123456:TESTTOKEN",
-    default=DefaultBotProperties(parse_mode="HTML")
-)
+    bot = Bot(token="123456:TESTTOKEN", default=DefaultBotProperties(parse_mode="HTML"))
     dp = Dispatcher(storage=MemoryStorage())
     dp.include_router(router)
 
@@ -23,26 +21,31 @@ async def test_song_random_flow_e2e():
     async def mock_answer(self, text, **kwargs):
         captured.append(text)
         return Message(
-            message_id=999,
-            from_user=user,
-            chat=chat,
-            date=datetime.now(),
-            text=text
+            message_id=999, from_user=user, chat=chat, date=datetime.now(), text=text
         )
 
     with (
         patch.object(Message, "answer", new=mock_answer),
-        patch("app.telegram_bot.handlers.random_songs_handler.generate_songs_random", new=Mock(return_value=[
-            {
-                "title": "Shape of You",
-                "artist": "Ed Sheeran",
-                "description": "Romantic Pop Song",
-                "youtube": "https://youtube.com/example"
-            }
-        ])),
+        patch(
+            "app.telegram_bot.handlers.random_songs_handler.generate_songs_random",
+            new=Mock(
+                return_value=[
+                    {
+                        "title": "Shape of You",
+                        "artist": "Ed Sheeran",
+                        "description": "Romantic Pop Song",
+                        "youtube": "https://youtube.com/example",
+                    }
+                ]
+            ),
+        ),
         patch("aiogram.client.bot.Bot.delete_message", new_callable=AsyncMock),
-        patch("app.llm.song_llm.generate_songs_by_description", new=Mock(return_value=[])),
-        patch("app.llm.song_llm.generate_top_songs_by_artist", new=Mock(return_value=[])),
+        patch(
+            "app.llm.song_llm.generate_songs_by_description", new=Mock(return_value=[])
+        ),
+        patch(
+            "app.llm.song_llm.generate_top_songs_by_artist", new=Mock(return_value=[])
+        ),
         patch("app.llm.song_llm.generate_songs_by_genre", new=Mock(return_value=[])),
     ):
         start_msg = Message(
@@ -50,7 +53,7 @@ async def test_song_random_flow_e2e():
             from_user=user,
             chat=chat,
             date=datetime.now(),
-            text="🔀 Պատահական երգ"
+            text="🔀 Պատահական երգ",
         )
         await dp.feed_update(bot=bot, update=Update(update_id=1, message=start_msg))
 
@@ -59,7 +62,7 @@ async def test_song_random_flow_e2e():
             from_user=user,
             chat=chat,
             date=datetime.now(),
-            text="🔝 Վերադառնալ գլխավոր մենյու"
+            text="🔝 Վերադառնալ գլխավոր մենյու",
         )
         await dp.feed_update(bot=bot, update=Update(update_id=2, message=back_msg))
 

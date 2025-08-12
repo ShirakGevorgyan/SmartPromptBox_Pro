@@ -9,23 +9,27 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 app = FastAPI(
     title="SmartPromptBox Pro 🤖",
     description="Receive YouTube links, return lyrics with AI",
-    version="1.0.0"
+    version="1.0.0",
 )
+
 
 # Root path
 @app.get("/")
 def root():
     return {"message": "Welcome to SmartPromptBox Pro API 🎤"}
 
+
 # Health check
 @app.get("/healthz")
 def health():
     return {"status": "ok"}
 
+
 # Exception handlers
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     return JSONResponse(status_code=exc.status_code, content={"error": exc.detail})
+
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):

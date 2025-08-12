@@ -8,12 +8,8 @@ from app.telegram_bot.handlers.series_menu_handler import router, SeriesStates
 
 @pytest.mark.asyncio
 async def test_series_description_state_transition():
-
     storage = MemoryStorage()
-    bot = Bot(
-    token="123456:TESTTOKEN",
-    default=DefaultBotProperties(parse_mode="HTML")
-)
+    bot = Bot(token="123456:TESTTOKEN", default=DefaultBotProperties(parse_mode="HTML"))
     dp = Dispatcher(storage=storage)
     dp.include_router(router)
 

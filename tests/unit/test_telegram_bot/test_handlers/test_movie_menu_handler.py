@@ -6,6 +6,7 @@ from app.telegram_bot.handlers.movie_menu_handler import (
     split_movies,
 )
 
+
 def test_extract_links_from_text():
     text = (
         "🎥 Վերնագիր: Some Movie\n"
@@ -16,11 +17,13 @@ def test_extract_links_from_text():
     assert trailer == "https://youtube.com/watch?v=abc123"
     assert watch == "https://www.imdb.com/title/tt1234567/"
 
+
 def test_extract_links_from_text_missing_links():
     text = "🎥 Վերնագիր: Some Movie\nNo links provided"
     trailer, watch = extract_links_from_text(text)
     assert trailer == "https://youtube.com"
     assert watch == "https://www.imdb.com"
+
 
 def test_clean_llm_text():
     text = (
@@ -32,6 +35,7 @@ def test_clean_llm_text():
     assert "Տրեյլեր" not in cleaned
     assert "Դիտելու հղում" not in cleaned
     assert "🎥 Վերնագիր" in cleaned
+
 
 def test_split_movies():
     input_text = (
