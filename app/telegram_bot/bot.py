@@ -1,3 +1,10 @@
+"""Aiogram bot entrypoint.
+
+Builds the Dispatcher with middlewares and routers, configures UI commands,
+initializes the DB schema, and runs long-polling with a simple exponential
+backoff on network errors. Armenian UX text is kept in handlers/prompts.
+"""
+
 import os
 import logging
 import asyncio
@@ -36,6 +43,7 @@ BOT_TOKEN = (os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
 
 
 async def start_command_handler(message: Message):
+    """Handle `/start`: greet the user and show the main menu."""
     await message.answer(
         (
             "👋 Բարի գալուստ <b>SmartPromptBox Pro</b>։\n"
@@ -51,6 +59,19 @@ async def start_command_handler(message: Message):
 
 
 def build_dispatcher() -> Dispatcher:
+    """Create and configure the Dispatcher with middlewares and routers.
+
+    Middlewares (order matters):
+        - RequestId: injects a short correlation id into `data`.
+        - CatchAllErrors: user-friendly error handling.
+        - LogUpdate: structured logging with latency.
+
+    Routers:
+        - GPT memory chat, mood flows, songs/movies/series, image, misc.
+
+    Returns:
+        Configured `Dispatcher` ready for polling.
+    """
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
 
@@ -73,6 +94,14 @@ def build_dispatcher() -> Dispatcher:
 
 
 def make_bot(token: str) -> Bot:
+    """Construct the `Bot` with an aiohttp session and HTML parse mode.
+
+    Args:
+        token: Telegram bot token.
+
+    Returns:
+        An initialized `aiogram.Bot` instance.
+    """
     # INT timeout՝ որպեսզի aiogram-ը կարողանա գումարել polling_timeout-ին
     session = AiohttpSession(timeout=60)
     return Bot(
@@ -83,6 +112,18 @@ def make_bot(token: str) -> Bot:
 
 
 async def main():
+    """Bootstrap the application and run long-polling with retries.
+
+    Steps:
+        1) Ensure `TELEGRAM_BOT_TOKEN` is present.
+        2) Initialize DB schema (`init_db()`).
+        3) Build dispatcher and bot, drop webhook (single instance).
+        4) Set UI commands (best-effort).
+        5) Start polling; on network issues, back off and retry.
+
+    Raises:
+        RuntimeError: if the bot token env var is missing.
+    """
     if not BOT_TOKEN:
         raise RuntimeError("TELEGRAM_BOT_TOKEN env var is missing")
 

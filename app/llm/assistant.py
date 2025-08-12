@@ -1,3 +1,13 @@
+"""LLM assistant orchestration for Telegram conversations.
+
+Responsibilities:
+- Load/save per-user chat history from the DB.
+- Maintain lightweight per-user profile fields (name, bot_name, last_mood).
+- Build an Armenian system prompt with tone guidance based on mood.
+- Summarize long histories and call OpenAI Chat with retry/backoff.
+- Persist results and append assistant replies to history.
+"""
+
 import os
 import json
 from openai import AsyncOpenAI
@@ -19,6 +29,16 @@ from functools import lru_cache
 
 @lru_cache()
 def get_openai_client() -> AsyncOpenAI:
+    """Return a cached AsyncOpenAI client initialized from env.
+
+    Reads `OPENAI_API_KEY` via dotenv and raises if it is missing.
+
+    Returns:
+        AsyncOpenAI: a singleton-like client (memoized with lru_cache).
+
+    Raises:
+        RuntimeError: if `OPENAI_API_KEY` is not set.
+    """
     load_dotenv()
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
@@ -27,6 +47,17 @@ def get_openai_client() -> AsyncOpenAI:
 
 
 def get_or_create_user(session: Session, user_id: str) -> UserMemory:
+    """Fetch a user's row or create a minimal one on first contact.
+
+    The row stores lightweight profile fields and a serialized history stub.
+
+    Args:
+        session: Open SQLAlchemy session.
+        user_id: Telegram user identifier.
+
+    Returns:
+        UserMemory: the existing or newly created row (committed).
+    """
     user = session.query(UserMemory).filter_by(user_id=user_id).first()
     if not user:
         user = UserMemory(
@@ -42,6 +73,16 @@ def get_or_create_user(session: Session, user_id: str) -> UserMemory:
 
 
 def detect_user_mood(history: List[Dict[str, str]]) -> str:
+    """Infer a coarse mood ('positive'/'negative'/'neutral') from recent user text.
+
+    Uses TextBlob polarity on the last couple of user messages.
+
+    Args:
+        history: Chat messages in OpenAI-like format.
+
+    Returns:
+        str: 'positive', 'negative', or 'neutral'.
+    """
     texts = [m["content"] for m in reversed(history) if m["role"] == "user"]
     recent_text = " ".join(texts[:2])
     if not recent_text.strip():
@@ -54,6 +95,17 @@ def detect_user_mood(history: List[Dict[str, str]]) -> str:
 
 
 def extract_names(history: List[Dict[str, str]]) -> Tuple[str, str]:
+    """Heuristically extract (user_name, bot_name) from Armenian phrases.
+
+    Looks for patterns like “ես <name> եմ” (I am <name>) and
+    “կոչեմ/անվանեմ <name>” (I'll call/name you <name>).
+
+    Args:
+        history: Chat messages in OpenAI-like format.
+
+    Returns:
+        Tuple[str, str]: (user_name, bot_name), empty strings if not detected.
+    """
     user_name, bot_name = "", ""
     for m in reversed(history):
         if m["role"] == "user":
@@ -71,6 +123,31 @@ def extract_names(history: List[Dict[str, str]]) -> Tuple[str, str]:
 
 
 async def gpt_assistant_conversation(user_id: str, new_message: str) -> str:
+    """Main assistant entrypoint: update profile, build prompt, call GPT, and persist.
+
+    Flow:
+        1) Load user row + history; append the new user message.
+        2) Sanitize history roles; extract names and detect mood.
+        3) Update profile fields and commit.
+        4) If history is long, summarize older part and keep a short working set.
+        5) Construct Armenian system prompt (tone depends on mood).
+        6) Call OpenAI Chat with retry/backoff; post-process the answer a bit.
+        7) Append assistant reply to history; write a small usage log; return text.
+
+    Args:
+        user_id: Telegram user identifier.
+        new_message: Latest user message content.
+
+    Returns:
+        str: Assistant reply text.
+
+    Side Effects:
+        - Commits DB changes (profile fields and history).
+        - Writes usage stats under `app/data/logs/assistant_logs.txt`.
+
+    Raises:
+        Any exception from OpenAI or the DB layer will propagate after cleanup.
+    """
     session: Session = SessionLocal()
     try:
         user = get_or_create_user(session, user_id)
@@ -145,7 +222,7 @@ async def gpt_assistant_conversation(user_id: str, new_message: str) -> str:
 
         banned_words = ["արշավին", "միանալ", "հոգսերին", "ձեզակերպ"]
         if all(word in answer.lower() for word in banned_words):
-            answer = f"Բարև 🤗 Ես {user.bot_name} եմ՝ քո խելացի օգնականը։ Ինչով կարող եմ օգնել այսօր։"
+            answer = f"Բարև 🤗 Ես {user.bot_name} եմ՝ քո խելացի օգնականը։ Ինչով կարող եմ օգնствовать այսօր։"
 
         history.append({"role": "assistant", "content": answer})
         save_history(session, user_id, history)

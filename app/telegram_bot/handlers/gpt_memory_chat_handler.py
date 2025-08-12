@@ -1,3 +1,11 @@
+"""Handlers for the memory-enabled GPT chat flow.
+
+Entrypoints:
+- start_conversation: initializes FSM state and shows a short intro.
+- continue_conversation: streams user messages to the LLM, updates DB-backed
+  memory, and manages in-chat cleanup actions (clear/back to main menu).
+"""
+
 from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
@@ -13,6 +21,7 @@ router = Router()
 
 @router.message(F.text == "⭐️ Խոսիր ինձ հետ")
 async def start_conversation(message: Message, state: FSMContext):
+    """Start the GPT conversation flow and prepare local state."""
     print("✅ Սկսեց GPT զրույցը")
     await state.set_state(GPTMemoryStates.chatting)
     await state.update_data(chat_history=[], message_ids=[])
@@ -25,6 +34,16 @@ async def start_conversation(message: Message, state: FSMContext):
 
 @router.message(GPTMemoryStates.chatting)
 async def continue_conversation(message: Message, state: FSMContext):
+    """Handle chat messages while in the GPT conversation state.
+
+    Features:
+        - Supports "Back to main menu" and "Clear chat" actions.
+        - Persists basic session info (topic/last_question) for light analytics.
+        - Calls the LLM assistant and appends the reply to the local history.
+
+    Notes:
+        Message deletion is best-effort and failures are logged to stdout.
+    """
     user_input = message.text
     data = await state.get_data()
     history = data.get("chat_history", [])
@@ -32,7 +51,7 @@ async def continue_conversation(message: Message, state: FSMContext):
 
     if user_input == "🔝 Վերադառնալ գլխավոր մենյու":
         await state.clear()
-        await message.answer("🏠 Վերադարձ գլխավոր մենյու։", reply_markup=main_menu)
+        await message.answer("🏠 Վերադարձ գլխավոր մենյու।", reply_markup=main_menu)
         return
 
     if user_input == "🧹 Մաքրել զրույցը":

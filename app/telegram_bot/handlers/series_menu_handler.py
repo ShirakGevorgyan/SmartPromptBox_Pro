@@ -1,3 +1,17 @@
+"""Series menu handlers.
+
+Provides Telegram flows to:
+- open the parent "Films & Series" menu and the series submenu,
+- suggest a random series via LLM,
+- get a series by free-text description,
+- get full details by exact series name,
+- list series by genre,
+- list top-10 series.
+
+Includes helpers for link extraction, LLM text cleaning, formatting, and safe
+sending of long messages split into 4096-char chunks.
+"""
+
 from aiogram import Router, F
 from aiogram.types import (
     Message,
@@ -30,6 +44,8 @@ router = Router()
 
 
 class SeriesStates(StatesGroup):
+    """FSM states for description/name/genre interactions."""
+
     waiting_for_description = State()
     waiting_for_series_name = State()
     waiting_for_genre = State()
@@ -50,6 +66,11 @@ SERIES_GENRE_MAP = {
 
 
 def extract_links_from_text(text: str):
+    """Extract trailer/watch URLs from series LLM output (if present).
+
+    Returns:
+        tuple[str | None, str | None]: (trailer_url, watch_url) or Nones.
+    """
     trailer_match = re.search(r"Տրեյլեր՝ \[.*?\]\((.*?)\)", text)
     watch_match = re.search(r"Դիտելու հղում՝ \[.*?\]\((.*?)\)", text)
     return (
@@ -59,6 +80,7 @@ def extract_links_from_text(text: str):
 
 
 def clean_llm_text(text: str) -> str:
+    """Remove explicit trailer/watch lines (rendered as inline buttons)."""
     lines = text.strip().split("\n")
     cleaned_lines = [
         line
@@ -69,6 +91,7 @@ def clean_llm_text(text: str) -> str:
 
 
 async def send_long_message(message: Message, full_text: str, reply_markup=None):
+    """Send a long message in chunks not exceeding Telegram's 4096-char limit."""
     max_length = 4096
     chunks = [
         full_text[i : i + max_length] for i in range(0, len(full_text), max_length)
@@ -80,6 +103,7 @@ async def send_long_message(message: Message, full_text: str, reply_markup=None)
 
 @router.message(F.text.func(lambda text: text.strip() == "🎬 Ֆիլմեր և Սերիալներ"))
 async def open_film_and_series_menu(message: Message):
+    """Open the parent 'Films & Series' menu."""
     await message.answer(
         "🎥 Ընտրիր՝ ֆիլմեր թե սերիալներ։", reply_markup=film_and_series_menu
     )
@@ -87,6 +111,7 @@ async def open_film_and_series_menu(message: Message):
 
 @router.message(F.text == "📺 Սերիալներ")
 async def show_series_menu(message: Message):
+    """Open the series submenu."""
     await message.answer(
         "📺 Ընտրիր գործողությունը սերիալների համար։", reply_markup=series_menu
     )
@@ -94,6 +119,7 @@ async def show_series_menu(message: Message):
 
 @router.message(F.text == "🔙 Վերադառնալ Ֆիլմեր և Սերիալներ")
 async def back_to_film_series_menu(message: Message):
+    """Back to the parent menu."""
     await message.answer(
         "📚 Վերադարձիր Ֆիլմերի և Սերիալների ընտրությանը։",
         reply_markup=film_and_series_menu,
@@ -102,11 +128,13 @@ async def back_to_film_series_menu(message: Message):
 
 @router.message(F.text == "🔝 Վերադառնալ գլխավոր մենյու")
 async def back_to_main_menu(message: Message):
+    """Back to the main menu."""
     await message.answer("🏠 Գլխավոր մենյու", reply_markup=main_menu)
 
 
 @router.message(F.text.in_({"🎲 Պատահական սերիալ", "🔁 Նոր պատահական սերիալ"}))
 async def send_random_series(message: Message):
+    """Ask LLM for a random series, clean text, and attach link buttons."""
     await message.answer("🎯 Ընտրում եմ պատահական սերիալ... ⏳")
     result = get_random_series_llm()
     trailer_url, watch_url = extract_links_from_text(result)
@@ -136,21 +164,23 @@ async def send_random_series(message: Message):
         ],
         resize_keyboard=True,
     )
-    await message.answer("⬇️ Ընտրիր հաջորդ քայլը։", reply_markup=reply_keyboard)
+    await message.answer("⬇️ Ընտրիր հաջորդ քայլը।", reply_markup=reply_keyboard)
 
 
 @router.message(
     F.text.in_({"📘 Սերիալի նկարագրություն", "🔁 Նոր սերիալի նկարագրություն"})
 )
 async def ask_description(message: Message, state: FSMContext):
+    """Ask for a free-text description and enter the description state."""
     await state.set_state(SeriesStates.waiting_for_description)
     await message.answer(
-        "✍️ Նկարագրիր ինչպիսի սերիալ ես ուզում։", reply_markup=ReplyKeyboardRemove()
+        "✍️ Նկարագրիր ինչպիսի սերիալ ես ուզում।", reply_markup=ReplyKeyboardRemove()
     )
 
 
 @router.message(SeriesStates.waiting_for_description)
 async def handle_description(message: Message, state: FSMContext):
+    """Fetch a series suggestion by description and show link buttons."""
     desc = message.text
     await message.answer("🔍 Փնտրում եմ համապատասխան սերիալը...")
 
@@ -182,18 +212,20 @@ async def handle_description(message: Message, state: FSMContext):
         ],
         resize_keyboard=True,
     )
-    await message.answer("⬇️ Ընտրիր հաջորդ քայլը։", reply_markup=reply_keyboard)
+    await message.answer("⬇️ Ընտրիր հաջորդ քայլը।", reply_markup=reply_keyboard)
     await state.clear()
 
 
 @router.message(F.text == "🔍 Ասա սերիալի անունը")
 async def ask_series_name(message: Message, state: FSMContext):
+    """Ask for the series title and enter the corresponding state."""
     await state.set_state(SeriesStates.waiting_for_series_name)
-    await message.answer("📺 Գրիր սերիալի անունը։", reply_markup=ReplyKeyboardRemove())
+    await message.answer("📺 Գրիր սերիալի անունը।", reply_markup=ReplyKeyboardRemove())
 
 
 @router.message(SeriesStates.waiting_for_series_name)
 async def handle_series_name(message: Message, state: FSMContext):
+    """Fetch full details by series name and display with link buttons."""
     series_name = message.text
     await message.answer("🔍 Փնտրում եմ սերիալի մասին ամբողջական տվյալներ...")
 
@@ -225,16 +257,18 @@ async def handle_series_name(message: Message, state: FSMContext):
         ],
         resize_keyboard=True,
     )
-    await message.answer("⬇️ Ընտրիր հաջորդ քայլը։", reply_markup=reply_keyboard)
+    await message.answer("⬇️ Ընտրիր հաջորդ քայլը।", reply_markup=reply_keyboard)
     await state.clear()
 
 
 @router.message(F.text == "🔍 Նոր սերիալի անուն")
 async def repeat_series_name(message: Message, state: FSMContext):
+    """Shortcut to repeat the 'ask series name' flow."""
     await ask_series_name(message, state)
 
 
 def format_series_text(chunk: str) -> str:
+    """Format a series info chunk into a bold/pretty HTML message."""
     lines = chunk.strip().split("\n")
     data = {}
 
@@ -264,6 +298,7 @@ def format_series_text(chunk: str) -> str:
 
 
 async def send_series_blocks(text: str, message: Message):
+    """Split an LLM result into per-series chunks and send each with buttons."""
     series_chunks = split_movies(text)
 
     for chunk in series_chunks:
@@ -283,22 +318,25 @@ async def send_series_blocks(text: str, message: Message):
 
 @router.message(F.text == "🔥 Լավագույն 10 սերիալ")
 async def top_10_series_handler(message: Message):
+    """Show a curated list of top-10 series using LLM suggestions."""
     await message.answer("📺 Ընտրում եմ լավագույն սերիալները...")
 
     result = get_top_10_series_llm()
     await send_series_blocks(result, message)
 
-    await message.answer("⬇️ Ընտրիր հաջորդ քայլը։", reply_markup=series_menu)
+    await message.answer("⬇️ Ընտրիր հաջորդ քայլը।", reply_markup=series_menu)
 
 
 @router.message(F.text == "🎭 Սերիալ ըստ ժանրի")
 async def ask_series_genre(message: Message, state: FSMContext):
-    await message.answer("📺 Ընտրիր սերիալի ժանրը։", reply_markup=series_genre_menu)
+    """Show the series genre keyboard and enter the genre state."""
+    await message.answer("📺 Ընտրիր սերիալի ժանրը।", reply_markup=series_genre_menu)
     await state.set_state(SeriesStates.waiting_for_genre)
 
 
 @router.message(SeriesStates.waiting_for_genre)
 async def handle_series_genre(message: Message, state: FSMContext):
+    """List series for the chosen genre and keep the state for more selections."""
     selected = message.text.strip()
     genre = SERIES_GENRE_MAP.get(selected)
 

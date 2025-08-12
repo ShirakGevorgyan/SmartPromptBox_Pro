@@ -1,3 +1,9 @@
+"""Song generation helpers by genre/description/artist using OpenAI.
+
+All functions request a Python `list[dict]` payload and attempt to parse
+the result via `ast.literal_eval`, with a fallback to a best-effort parser.
+"""
+
 import os
 import ast
 from openai import OpenAI
@@ -8,6 +14,14 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 def generate_songs_by_genre(genre: str) -> List[Dict[str, str]]:
+    """Return 5 songs that best represent the given genre.
+
+    Args:
+        genre: Genre name/label.
+
+    Returns:
+        List of dicts with fields: title, artist, description, youtube.
+    """
     system_prompt = (
         "Դու երաժշտական օգնական ես։ "
         f"Օգտատերը նշել է ոճ՝ {genre}։ "
@@ -37,6 +51,14 @@ def generate_songs_by_genre(genre: str) -> List[Dict[str, str]]:
 
 
 def generate_songs_by_description(description: str) -> List[Dict[str, str]]:
+    """Return 2 songs that match the provided free-text description.
+
+    Args:
+        description: Short description/mood/topic text.
+
+    Returns:
+        List of dicts with fields: title, artist, description, youtube.
+    """
     system_prompt = (
         "Դու երաժշտական օգնական ես։ "
         f'Օգտատերը ցանկանում է երգեր հետևյալ նկարագրության հիման վրա՝\n"{description}"։ '
@@ -66,6 +88,14 @@ def generate_songs_by_description(description: str) -> List[Dict[str, str]]:
 
 
 def generate_top_songs_by_artist(artist: str) -> List[Dict[str, str]]:
+    """Return the top 10 songs for a given artist.
+
+    Args:
+        artist: Artist name.
+
+    Returns:
+        List of dicts with fields: title, artist, description, youtube.
+    """
     system_prompt = (
         "Դու երաժշտական օգնական ես։ "
         f"Օգտատերը ցանկանում է տեսնել «{artist}» արտիստի 10 լավագույն երգերը։ "

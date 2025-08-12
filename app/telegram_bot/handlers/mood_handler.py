@@ -1,3 +1,14 @@
+"""Mood Assistant handlers.
+
+Lets the user pick a mood and request different content:
+- 5 songs
+- 5 movies
+- 5 quotes
+- 2 image prompts (and optional generation)
+
+Also contains small helpers that render movies/songs as Telegram buttons.
+"""
+
 from aiogram import Router, F
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
@@ -17,6 +28,7 @@ router = Router()
 
 @router.message(F.text == "🧠 Mood Assistant")
 async def mood_main(message: Message, state: FSMContext):
+    """Entry: clear state and show the mood picker keyboard."""
     await state.clear()
     await message.answer("Ընտրիր քո տրամադրությունը 👇", reply_markup=mood_menu)
 
@@ -38,6 +50,7 @@ async def mood_main(message: Message, state: FSMContext):
     )
 )
 async def mood_chosen(message: Message, state: FSMContext):
+    """Persist the chosen mood and ask what content the user wants."""
     mood = message.text
     await state.update_data(mood=mood)
     await message.answer(
@@ -46,6 +59,7 @@ async def mood_chosen(message: Message, state: FSMContext):
 
 
 async def send_movies_as_buttons(movies: list[dict], message):
+    """Render a list of movies as separate messages with trailer/watch buttons."""
     for i, movie in enumerate(movies, 1):
         text = (
             f"<b>📽 Ֆիլմ {i}․ {movie['title']}</b>\n"
@@ -62,6 +76,7 @@ async def send_movies_as_buttons(movies: list[dict], message):
 
 
 async def send_song_buttons(songs: list[dict], message: Message, state: FSMContext):
+    """Render song items as messages with a YouTube button; store in FSM state."""
     await state.update_data(songs_for_download=songs)
 
     for idx, song in enumerate(songs):
@@ -87,6 +102,7 @@ async def send_song_buttons(songs: list[dict], message: Message, state: FSMConte
     )
 )
 async def mood_generate(message: Message, state: FSMContext):
+    """Generate content for the previously selected mood based on the user choice."""
     user_data = await state.get_data()
     mood = user_data.get("mood", "😐 Ուղղակի լավ եմ")
     await message.answer("Սպասիր մի պահ… 🤖 մշակվում է…")
@@ -132,6 +148,7 @@ async def mood_generate(message: Message, state: FSMContext):
 
 @router.message(F.text == "❤️ Տրամադրությամբ երգեր")
 async def show_mood_menu(message: Message, state: FSMContext):
+    """Shortcut to open the mood menu for songs; resets the current state."""
     await state.clear()
 
     await message.answer(
@@ -141,10 +158,12 @@ async def show_mood_menu(message: Message, state: FSMContext):
 
 @router.message(F.text == "🔙 Վերադառնալ տրամադրության ընտրությանը")
 async def back_to_mood(message: Message):
+    """Show the mood menu again."""
     await message.answer("Ընտրիր նոր տրամադրություն 👇", reply_markup=mood_menu)
 
 
 @router.message(F.text == "🔝 Վերադառնալ գլխավոր մենյու")
 async def back_to_main_menu(message: Message, state: FSMContext):
+    """Return to the main menu and clear FSM state."""
     await state.clear()
     await message.answer("Դու վերադարձար գլխավոր մենյու 🏠", reply_markup=main_menu)

@@ -1,3 +1,5 @@
+"""Helpers to generate image prompts and images via OpenAI."""
+
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -7,6 +9,17 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 def generate_image_prompts_from_mood(mood: str) -> list[str]:
+    """Return two short, TTI-friendly Armenian prompts derived from a mood.
+
+    The prompts are intended for text-to-image models (e.g., DALL·E, SD).
+
+    Args:
+        mood: A mood label (e.g., "happy", "sad", "neutral", or Armenian text).
+
+    Returns:
+        list[str]: Up to two cleaned, succinct prompts.
+        On error, the list contains a single error message.
+    """
     system_prompt = (
         f"Օգտատերը զգում է '{mood}' տրամադրություն։ "
         f"Առաջարկիր 2 նկարների պարզ նկարագրություն՝ որոնք հնարավոր է օգտագործել text-to-image մոդելներով, "
@@ -41,6 +54,15 @@ def generate_image_prompts_from_mood(mood: str) -> list[str]:
 
 
 def generate_images_from_prompts(prompts: list[str]) -> list[tuple[str, str]]:
+    """Generate images for each prompt and return (prompt, image_url) pairs.
+
+    Args:
+        prompts: A list of textual prompts.
+
+    Returns:
+        list[tuple[str, str]]: For each input prompt, a 2-tuple of
+        `(original_prompt, image_url_or_error)`. Errors are returned as text.
+    """
     results = []
     for prompt in prompts:
         try:

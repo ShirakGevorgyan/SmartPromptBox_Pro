@@ -1,3 +1,15 @@
+"""Series suggestions via OpenAI with Armenian prompts.
+
+Functions here mirror the movie helpers but target TV series:
+- get_random_series_llm: propose a random series across random genres/years.
+- suggest_series_by_description_llm: one series by free-text description.
+- get_series_details_by_name_llm: detailed info for a given series title.
+- get_series_by_genre_llm: three series for a genre.
+- get_top_10_series_llm: a top-10 list of modern series.
+
+All functions send Armenian prompts; plots are refined via `replace_plot_with_refined`.
+"""
+
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
@@ -9,6 +21,11 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 def get_random_series_llm() -> str:
+    """Return a single random series suggestion (genres/years chosen randomly).
+
+    Returns:
+        A formatted Armenian block with title, genre, director, cast, plot, rating, links.
+    """
     genres = [
         "դրամա",
         "կատակերգություն",
@@ -78,6 +95,14 @@ def get_random_series_llm() -> str:
 
 
 def suggest_series_by_description_llm(description: str) -> str:
+    """Suggest a series that fits the provided free-text description.
+
+    Args:
+        description: Armenian description of desired theme/mood.
+
+    Returns:
+        A formatted Armenian block with standard fields and refined plot.
+    """
     prompt = f"""
 Օգտատերը ցանկանում է սերիալ առաջարկ՝ ըստ նկարագրության․
 «{description}»
@@ -103,6 +128,14 @@ def suggest_series_by_description_llm(description: str) -> str:
 
 
 def get_series_details_by_name_llm(series_name: str) -> str:
+    """Return a detailed card for the provided series title.
+
+    Args:
+        series_name: Series name provided by the user.
+
+    Returns:
+        A formatted Armenian block with title, meta fields, refined plot and links.
+    """
     prompt = f"""
 Օգտատերը գրում է սերիալի անունը՝ «{series_name}»
 
@@ -138,6 +171,14 @@ def get_series_details_by_name_llm(series_name: str) -> str:
 
 
 def get_series_by_genre_llm(genre: str) -> str:
+    """Return three series suggestions constrained to a specific genre.
+
+    Args:
+        genre: Armenian genre name.
+
+    Returns:
+        A formatted Armenian block with three series; plot is refined.
+    """
     prompt = f"""
 Օգտատերը ընտրել է սերիալի ժանրը՝ {genre}։
 
@@ -164,6 +205,11 @@ def get_series_by_genre_llm(genre: str) -> str:
 
 
 def get_top_10_series_llm() -> str:
+    """Return a curated list of ten notable modern series across genres/countries.
+
+    Returns:
+        A formatted Armenian block with 10 series and refined plot sections.
+    """
     prompt = """
 Նշի 10 սերիալ, որոնք համարվում են ժամանակակից լավագույններից։
 
@@ -178,7 +224,7 @@ def get_top_10_series_llm() -> str:
 ▶️ Տրեյլեր՝ [Դիտել YouTube-ում](...)
 🎞️ Դիտելու հղում՝ [IMDB կամ այլ վստահելի աղբյուր](...)
 
-Մի՛ գրիր բացատրություն։ Մի՛ ավելացրու emojis (արդեն կա)։
+Մի՛ գրիր բացատրություն։ Մի՛ ավելացրու emojis (արդենկա)։
 """
     response = client.chat.completions.create(
         model="gpt-4o", messages=[{"role": "user", "content": prompt}], temperature=0.75

@@ -1,3 +1,17 @@
+"""Movie suggestions via OpenAI with Armenian prompts.
+
+Functions here:
+- add_default_links_if_missing: ensure trailer/watch links are present.
+- get_random_movie_llm: propose a random movie across random genres and years.
+- suggest_movies_by_description_llm: one movie based on a free-text description.
+- get_movie_details_by_name_llm: detailed info for a given movie title.
+- get_movies_by_genre_llm: three movies for a specific genre.
+- get_top_10_movies_llm: a top-10 modern cinema list.
+
+All functions call OpenAI Chat (Armenian prompts) and post-process the output
+using `replace_plot_with_refined` to rewrite the plot section in clearer Armenian.
+"""
+
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
@@ -12,6 +26,14 @@ DEFAULT_WATCH = "https://www.imdb.com"
 
 
 def add_default_links_if_missing(text: str) -> str:
+    """Append default trailer/watch links if the response omitted them.
+
+    Args:
+        text: Raw LLM response text that should contain trailer/watch links.
+
+    Returns:
+        The original text, possibly with appended trailer and watch links.
+    """
     if "▶️ Տրեյլեր" not in text:
         text += f"\n▶️ Տրեյլեր՝ [Դիտել YouTube-ում]({DEFAULT_TRAILER})"
     if "🎞️ Դիտելու հղում" not in text:
@@ -21,6 +43,14 @@ def add_default_links_if_missing(text: str) -> str:
 
 # 🎲 Պատահական ֆիլմ
 def get_random_movie_llm() -> str:
+    """Return a single random movie suggestion (genres/years chosen randomly).
+
+    Builds an Armenian prompt with randomly sampled genres and year range,
+    asks OpenAI, injects default links if needed, then refines the '📜 Սյուժե' section.
+
+    Returns:
+        A formatted Armenian block with title, genre, director, cast, plot, ratings, etc.
+    """
     genres = [
         "գիտաֆանտաստիկա",
         "դրամա",
@@ -86,6 +116,14 @@ def get_random_movie_llm() -> str:
 
 
 def suggest_movies_by_description_llm(description: str) -> str:
+    """Suggest a movie that fits the provided free-text description.
+
+    Args:
+        description: Short Armenian description of what the user wants.
+
+    Returns:
+        A formatted Armenian block with standard fields and refined plot.
+    """
     prompt = f"""
 Օգտատերը ցանկանում է ֆիլմ առաջարկ՝ ըստ նկարագրության․
 «{description}»
@@ -109,6 +147,14 @@ def suggest_movies_by_description_llm(description: str) -> str:
 
 
 def get_movie_details_by_name_llm(movie_name: str) -> str:
+    """Return a detailed card for the provided movie title.
+
+    Args:
+        movie_name: Movie name provided by the user.
+
+    Returns:
+        A formatted Armenian block with title, meta fields, refined plot and links.
+    """
     prompt = f"""
 Օգտատերը գրում է ֆիլմի անունը՝ «{movie_name}»
 
@@ -136,6 +182,14 @@ def get_movie_details_by_name_llm(movie_name: str) -> str:
 
 
 def get_movies_by_genre_llm(genre: str) -> str:
+    """Return three movie suggestions constrained to a specific genre.
+
+    Args:
+        genre: Armenian genre name.
+
+    Returns:
+        A formatted Armenian block with three movies; plot is refined.
+    """
     prompt = f"""
 Օգտատերը ընտրել է հետևյալ ժանրը՝ {genre}։
 
@@ -162,6 +216,11 @@ def get_movies_by_genre_llm(genre: str) -> str:
 
 
 def get_top_10_movies_llm() -> str:
+    """Return a curated list of ten notable modern films across genres/countries.
+
+    Returns:
+        A formatted Armenian block with 10 films and refined plot sections.
+    """
     prompt = """
 Առաջարկիր 10 ֆիլմ, որոնք համարվում են ժամանակակից կինոյի լավագույններից։
 Նշի տարբեր ժանրերից, տարբեր երկրներից։

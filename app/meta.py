@@ -1,3 +1,10 @@
+"""Runtime metadata for the bot.
+
+- `BOT_NAME` and `BOT_VERSION` can be overridden via environment variables
+    and are displayed by the `/about` command.
+- `STARTED_AT` is used to compute a simple uptime value.
+"""
+
 import os
 import time
 

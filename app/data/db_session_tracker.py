@@ -1,3 +1,11 @@
+"""Lightweight per-user session tracking helpers.
+
+Functions:
+    - get_or_create_user_session: return an active `session_id` or create a new one.
+    - update_session_info: upsert `topic` and `last_question` for the user session.
+    - get_session_info: fetch `(topic, last_question)` tuple for the user.
+"""
+
 from datetime import datetime
 import uuid
 from sqlalchemy.orm import Session
@@ -7,6 +15,23 @@ SESSION_TIMEOUT = 60 * 30
 
 
 def get_or_create_user_session(db: Session, user_id: str) -> str:
+    """Return an active session_id for the given user, creating a new one if needed.
+
+    Logic:
+        - If a session exists and is still fresh (last_seen within SESSION_TIMEOUT),
+        refresh `last_seen` and reuse its `session_id`.
+        - Otherwise, delete the stale session (if any) and create a new one.
+
+    Args:
+        db: Open SQLAlchemy session.
+        user_id: Telegram user identifier as string.
+
+    Returns:
+        The active `session_id` for this user.
+
+    Raises:
+        Exception: Re-raises any DB error after rollback.
+    """
     now = datetime.utcnow()
     session = db.query(UserSession).filter_by(user_id=user_id).first()
 
@@ -38,6 +63,24 @@ def get_or_create_user_session(db: Session, user_id: str) -> str:
 def update_session_info(
     db: Session, user_id: str, topic: str = None, last_question: str = None
 ):
+    """Update or create a user session with auxiliary fields.
+
+    If a row exists:
+        - Update `last_seen`.
+        - Optionally update `topic` and/or `last_question`.
+
+    If a row does not exist:
+        - Create a new session initialized with provided values.
+
+    Args:
+        db: Open SQLAlchemy session.
+        user_id: Telegram user identifier as string.
+        topic: Optional topical label/category.
+        last_question: Optional text of the user's most recent question.
+
+    Raises:
+        Exception: Re-raises any DB error after rollback.
+    """
     try:
         session = db.query(UserSession).filter_by(user_id=user_id).first()
         if session:
@@ -65,6 +108,17 @@ def update_session_info(
 
 
 def get_session_info(db: Session, user_id: str):
+    """Return `(topic, last_question)` for the current user session.
+
+    If no session exists, returns `(None, None)`.
+
+    Args:
+        db: Open SQLAlchemy session.
+        user_id: Telegram user identifier as string.
+
+    Returns:
+        Tuple[str|None, str|None]: `(topic, last_question)` or `(None, None)`.
+    """
     try:
         session = db.query(UserSession).filter_by(user_id=user_id).first()
         if session:

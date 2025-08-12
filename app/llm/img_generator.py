@@ -1,3 +1,10 @@
+"""Image generation + robust download to the local filesystem.
+
+- Calls OpenAI Images API to create an image.
+- Streams and saves the image to `./images/` with a unique name.
+- Uses a timeout and verifies HTTP status; cleans up partial files on error.
+"""
+
 import os
 import uuid
 from pathlib import Path
@@ -16,6 +23,16 @@ IMAGES_DIR = Path("images")
 
 
 def _download_image(image_url: str, file_path: Path) -> None:
+    """Download an image in streaming mode and write it to disk.
+
+    Args:
+        image_url: Direct URL of the image to download.
+        file_path: Target Path where the file should be saved.
+
+    Raises:
+        requests.HTTPError: If the response status code is not 2xx.
+        requests.RequestException: For network/timeout errors.
+    """
     with requests.get(image_url, timeout=DEFAULT_TIMEOUT, stream=True) as resp:
         resp.raise_for_status()
         with file_path.open("wb") as f:
